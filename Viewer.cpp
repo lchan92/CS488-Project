@@ -19,8 +19,12 @@ Viewer::Viewer(const QGLFormat& format, QWidget *parent)
     // , mCircleBufferObject(QGLBuffer::VertexBuffer)
 #endif
 {
+    setFocusPolicy(Qt::StrongFocus);
+
     cubeSetup();
     sphereSetup();
+
+    mPlayer = new Character();
 }
 
 Viewer::~Viewer() {
@@ -136,6 +140,8 @@ void Viewer::initializeGL() {
 void Viewer::paintGL() {
     // Clear framebuffer
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // draw_cube(QMatrix4x4());
 }
 
 
@@ -152,21 +158,6 @@ void Viewer::resizeGL(int width, int height) {
     glViewport(0, 0, width, height);
 }
 
-
-
-
-void Viewer::mousePressEvent ( QMouseEvent * event ) {
-}
-
-void Viewer::mouseReleaseEvent ( QMouseEvent * event ) {
-}
-
-void Viewer::mouseMoveEvent ( QMouseEvent * event ) {
-}
-
-
-
-
 QMatrix4x4 Viewer::getCameraMatrix() {
     // Todo: Ask if we want to keep this.
     QMatrix4x4 vMatrix;
@@ -179,9 +170,6 @@ QMatrix4x4 Viewer::getCameraMatrix() {
 
     return mPerspMatrix * vMatrix * mTransformMatrix;
 }
-
-
-
 
 void Viewer::translateWorld(float x, float y, float z) {
     // Todo: Ask if we want to keep this.
@@ -202,6 +190,83 @@ void Viewer::set_colour(const QColor& col)
 {
   mProgram.setUniformValue(mColorLocation, col.red()/255.0, col.green()/255.0, col.blue()/255.0);
 }
+
+
+
+
+void Viewer::mousePressEvent(QMouseEvent *event) {
+    std::cout << "mouse pressed" << std::endl;
+}
+
+void Viewer::mouseReleaseEvent(QMouseEvent *event) {
+}
+
+void Viewer::mouseMoveEvent(QMouseEvent *event) {
+}
+
+void Viewer::keyPressEvent(QKeyEvent *event) {
+    // std::cout << "key: " << event->key() << " val: " << qPrintable(event->text()) << std::endl;
+
+    switch(event->key()) {
+        case 87: {
+            //w
+            mForwardFlag = true;
+            break;
+        }
+        case 65: {
+            //a
+            mLeftFlag = true;
+            break;
+        }
+        case 83: {
+            //s
+            mBackwardFlag = true;
+            break;
+        }
+        case 68: {
+            //d
+            mRightFlag = true;
+            break;
+        }
+        case 32: {
+            //space
+            mPlayer->jump();
+            break;
+        }
+        default:
+            break;
+    }
+}
+
+void Viewer::keyReleaseEvent(QKeyEvent *event) {
+    switch (event->key()) {
+        case 87: {
+            mForwardFlag = false;
+            break;
+        }
+        case 65: {
+            mLeftFlag = false;
+            break;
+        }
+        case 83: {
+            mBackwardFlag = false;
+            break;
+        }
+        case 68: {
+            mRightFlag = false;
+            break;
+        }
+        default:
+            break;
+    }
+}
+
+
+
+
+
+
+
 
 
 

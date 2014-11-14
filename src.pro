@@ -5,25 +5,23 @@
 QT += opengl widgets
 CONFIG += c++11
 QMAKE_CXXFLAGS += -W -Wall -g 
-LIBS += -lGLU -llua5.1
+LIBS += -lGLU
 TEMPLATE = app
-TARGET = puppeteer
-INCLUDEPATH += /usr/include/lua5.1
+TARGET = game
 
 # Input
 HEADERS += algebra.hpp \
-           lua488.hpp \
            material.hpp \
            primitive.hpp \
            scene.hpp \
-           scene_lua.hpp \
            AppWindow.hpp \
-           Viewer.hpp
+           Viewer.hpp \
+           character.hpp
 SOURCES += algebra.cpp \
            main.cpp \
            material.cpp \
            primitive.cpp \
            scene.cpp \
-           scene_lua.cpp \
            AppWindow.cpp \ 
-           Viewer.cpp
+           Viewer.cpp \
+           character.cpp

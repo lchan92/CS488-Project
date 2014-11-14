@@ -14,6 +14,7 @@
 #endif
 
 #include "scene.hpp"
+#include "character.hpp"
 
 
 class Viewer : public QGLWidget {
@@ -46,12 +47,13 @@ protected:
     virtual void paintGL();
     // Called when the window is resized (formerly on_configure_event)
     virtual void resizeGL(int width, int height);
-    // Called when a mouse button is pressed
-    virtual void mousePressEvent ( QMouseEvent * event );
-    // Called when a mouse button is released
-    virtual void mouseReleaseEvent ( QMouseEvent * event );
-    // Called when the mouse moves
-    virtual void mouseMoveEvent ( QMouseEvent * event );
+
+
+    virtual void mousePressEvent(QMouseEvent *event);
+    virtual void mouseReleaseEvent(QMouseEvent *event);
+    virtual void mouseMoveEvent(QMouseEvent *event);
+    virtual void keyPressEvent(QKeyEvent *event);
+    virtual void keyReleaseEvent(QKeyEvent *event);
 
 
 private:
@@ -67,6 +69,10 @@ private:
 
     std::vector<GLfloat> mCubeVerts;
     std::vector<GLfloat> mSphereVerts;
+
+    Character *mPlayer;
+    bool mLeftFlag, mRightFlag, mForwardFlag, mBackwardFlag;
+    int mJumpCount;
 
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 1, 0))
