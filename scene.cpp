@@ -78,5 +78,5 @@ GeometryNode::~GeometryNode()
 void GeometryNode::walk_gl(QMatrix4x4 transformMatrix) const
 {
   m_material->apply_gl(transformMatrix * m_trans);
-  m_primitive->walk_gl(m_id, transformMatrix * m_trans);
+  m_primitive->walk_gl(transformMatrix * m_trans);
 }

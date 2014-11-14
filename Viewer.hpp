@@ -27,6 +27,9 @@ public:
     QSize minimumSizeHint() const;
     QSize sizeHint() const;
 
+    void draw_cube(QMatrix4x4 transformMatrix);
+    void draw_sphere(QMatrix4x4 transformMatrix);
+
     void setMaterial(const Colour& kd, const Colour& ks, double shininess, QMatrix4x4 transformMatrix);
 
     // If you want to render a new frame, call do not call paintGL(),
@@ -59,14 +62,22 @@ private:
     void scaleWorld(float x, float y, float z);
     void set_colour(const QColor& col);
 
+    void cubeSetup();
+    void sphereSetup();
+
+    std::vector<GLfloat> mCubeVerts;
+    std::vector<GLfloat> mSphereVerts;
+
+
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 1, 0))
-    QOpenGLBuffer mCircleBufferObject;
+    QOpenGLBuffer mCubeBufferObject;
     QOpenGLBuffer mSphereBufferObject;
     QOpenGLVertexArrayObject mVertexArrayObject;
 #else 
-    QGLBuffer mCircleBufferObject;
+    QGLBuffer mCubeBufferObject;
     QGLBuffer mSphereBufferObject;
 #endif
+
 
     int mShadingLocation;
     int mDiffuseLocation, mSpecularLocation, mShininessLocation;

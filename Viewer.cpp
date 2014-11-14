@@ -13,12 +13,14 @@
 Viewer::Viewer(const QGLFormat& format, QWidget *parent) 
     : QGLWidget(format, parent) 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 1, 0))
-    , mCircleBufferObject(QOpenGLBuffer::VertexBuffer)
+    // , mCircleBufferObject(QOpenGLBuffer::VertexBuffer)
     , mVertexArrayObject(this)
 #else 
-    , mCircleBufferObject(QGLBuffer::VertexBuffer)
+    // , mCircleBufferObject(QGLBuffer::VertexBuffer)
 #endif
 {
+    cubeSetup();
+    sphereSetup();
 }
 
 Viewer::~Viewer() {
@@ -42,8 +44,8 @@ void Viewer::initializeGL() {
 
     glShadeModel(GL_SMOOTH);
     glClearColor( 0.4, 0.4, 0.4, 0.0 );
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_CULL_FACE);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
 
     if (!mProgram.addShaderFromSourceFile(QGLShader::Vertex, "shader.vert")) {
         std::cerr << "Cannot load vertex shader." << std::endl;
@@ -60,24 +62,13 @@ void Viewer::initializeGL() {
         return;
     }
 
-    float circleData[120];
-
-    double radius = width() < height() ? 
-        (float)width() * 0.25 : (float)height() * 0.25;
-        
-    for(size_t i=0; i<40; ++i) {
-        circleData[i*3] = radius * cos(i*2*M_PI/40);
-        circleData[i*3 + 1] = radius * sin(i*2*M_PI/40);
-        circleData[i*3 + 2] = 0.0;
-    }
-
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 1, 0))
     mVertexArrayObject.create();
     mVertexArrayObject.bind();
 
-    mCircleBufferObject.create();
-    mCircleBufferObject.setUsagePattern(QOpenGLBuffer::StaticDraw);
+    mCubeBufferObject.create();
+    mCubeBufferObject.setUsagePattern(QOpenGLBuffer::StaticDraw);
 
     mSphereBufferObject.create();
     mSphereBufferObject.setUsagePattern(QOpenGLBuffer::StaticDraw);
@@ -101,25 +92,33 @@ void Viewer::initializeGL() {
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);    
 
-    mCircleBufferObject.create();
-    mCircleBufferObject.setUsagePattern(QGLBuffer::StaticDraw);
+    mCubeBufferObject.create();
+    mCubeBufferObject.setUsagePattern(QGLBuffer::StaticDraw);
 
     mSphereBufferObject.create();
     mSphereBufferObject.setUsagePattern(QGLBuffer::StaticDraw);
 #endif
 
-    if (!mCircleBufferObject.bind()) {
-        std::cerr << "could not bind circle vertex buffer to the context." << std::endl;
+    if (!mCubeBufferObject.bind()) {
+        std::cerr << "could not bind cube vertex buffer to the context." << std::endl;
         return;
     }
-    mCircleBufferObject.allocate(circleData, 40 * 3 * sizeof(float));
+    mCubeBufferObject.allocate(&mCubeVerts, 36 * 3 * sizeof(float));
+
+    if (!mSphereBufferObject.bind()) {
+        std::cerr << "could not bind sphere vertex buffer to the context." << std::endl;
+        return;
+    }
+    mSphereBufferObject.allocate(&mSphereVerts[0], 1600 * 6 * sizeof(float));
+
+
 
     mProgram.bind();
     mProgram.enableAttributeArray("vert");
     mProgram.setAttributeBuffer("vert", GL_FLOAT, 0, 3);
 
-    mShadingLocation = mProgram.uniformLocation("shading");
 
+    // variables to pass to shader
     mMvpMatrixLocation = mProgram.uniformLocation("mvpMatrix");
     mMvpNormalMatrixLocation = mProgram.uniformLocation("mvpNormalMatrix");
     mEyeMatrixLocation = mProgram.uniformLocation("eyeMatrix");
@@ -131,10 +130,16 @@ void Viewer::initializeGL() {
     mShininessLocation = mProgram.uniformLocation("Shininess");
 }
 
+
+
+
 void Viewer::paintGL() {
     // Clear framebuffer
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
+
+
+
 
 void Viewer::resizeGL(int width, int height) {
     if (height == 0) {
@@ -147,6 +152,9 @@ void Viewer::resizeGL(int width, int height) {
     glViewport(0, 0, width, height);
 }
 
+
+
+
 void Viewer::mousePressEvent ( QMouseEvent * event ) {
 }
 
@@ -155,6 +163,9 @@ void Viewer::mouseReleaseEvent ( QMouseEvent * event ) {
 
 void Viewer::mouseMoveEvent ( QMouseEvent * event ) {
 }
+
+
+
 
 QMatrix4x4 Viewer::getCameraMatrix() {
     // Todo: Ask if we want to keep this.
@@ -168,6 +179,9 @@ QMatrix4x4 Viewer::getCameraMatrix() {
 
     return mPerspMatrix * vMatrix * mTransformMatrix;
 }
+
+
+
 
 void Viewer::translateWorld(float x, float y, float z) {
     // Todo: Ask if we want to keep this.
@@ -189,10 +203,110 @@ void Viewer::set_colour(const QColor& col)
   mProgram.setUniformValue(mColorLocation, col.red()/255.0, col.green()/255.0, col.blue()/255.0);
 }
 
-void Viewer::setMaterial(const Colour& kd, const Colour& ks, double shininess, QMatrix4x4 transformMatrix) {
-    // mProgram.setUniformValue(mShadingLocation, !mPicking);
-    mProgram.setUniformValue(mShadingLocation, true);
 
+
+
+// DRAWING STUFF
+void Viewer::cubeSetup() {
+    float cubeData[] = {
+        //  X     Y     Z
+        0.0f, 0.0f, 0.0f, // front face
+        1.0f, 0.0f, 0.0f,
+        1.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 0.0f,
+        1.0f, 1.0f, 0.0f,
+        0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, // bottom face
+        1.0f, 0.0f, 0.0f,
+        1.0f, 0.0f, 1.0f,
+        0.0f, 0.0f, 0.0f,
+        1.0f, 0.0f, 1.0f,
+        0.0f, 0.0f, 1.0f,
+        0.0f, 0.0f, 0.0f, // left face
+        0.0f, 0.0f, 1.0f,
+        0.0f, 1.0f, 1.0f,
+        0.0f, 0.0f, 0.0f,
+        0.0f, 1.0f, 1.0f,
+        0.0f, 1.0f, 0.0f,
+        1.0f, 0.0f, 0.0f, // right face
+        1.0f, 0.0f, 1.0f,
+        1.0f, 1.0f, 1.0f,
+        1.0f, 0.0f, 0.0f,
+        1.0f, 1.0f, 1.0f,
+        1.0f, 1.0f, 0.0f,
+        0.0f, 1.0f, 0.0f, // top face
+        1.0f, 1.0f, 0.0f,
+        1.0f, 1.0f, 1.0f,
+        0.0f, 1.0f, 0.0f,
+        1.0f, 1.0f, 1.0f,
+        0.0f, 1.0f, 1.0f,
+        0.0f, 0.0f, 1.0f, // back face
+        1.0f, 0.0f, 1.0f,
+        1.0f, 1.0f, 1.0f,
+        0.0f, 0.0f, 1.0f,
+        1.0f, 1.0f, 1.0f,
+        0.0f, 1.0f, 1.0f,
+    };
+
+    for (int i = 0; i < 36*3; i++) {
+        mCubeVerts.push_back(cubeData[i]);
+    }
+}
+
+void Viewer::sphereSetup() {
+    for(int i = 0; i < 40; i++)
+    {
+        double lat0 = M_PI * 2 * (-0.5 + (double) (i - 1) / 40);
+        double z0  = sin(lat0);
+        double zr0 =  cos(lat0);
+
+        double lat1 = M_PI * 2 * (-0.5 + (double) i / 40);
+        double z1 = sin(lat1);
+        double zr1 = cos(lat1);
+
+        for(int j = 0; j < 40; j++)
+        {
+            double lng = 2 * M_PI * (double) (j - 1) / 40;
+            double x = cos(lng);
+            double y = sin(lng);
+
+            mSphereVerts.push_back(x * zr0); //X
+            mSphereVerts.push_back(y * zr0); //Y
+            mSphereVerts.push_back(z0);      //Z
+
+            mSphereVerts.push_back(x * zr1); //X
+            mSphereVerts.push_back(y * zr1); //Y
+            mSphereVerts.push_back(z1);      //Z
+        }
+    }
+}
+
+
+
+void Viewer::draw_cube(QMatrix4x4 transformMatrix) {
+    mCubeBufferObject.bind();
+
+    mProgram.bind();
+    mProgram.enableAttributeArray("vert");
+    mProgram.setAttributeBuffer("vert", GL_FLOAT, 0, 3);
+    mProgram.setUniformValue(mMvpMatrixLocation, getCameraMatrix() * transformMatrix);
+
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+}
+
+void Viewer::draw_sphere(QMatrix4x4 transformMatrix) {
+    mSphereBufferObject.bind();
+
+    mProgram.bind();
+    mProgram.enableAttributeArray("vert");
+    mProgram.setAttributeBuffer("vert", GL_FLOAT, 0, 3);
+    mProgram.setUniformValue(mMvpMatrixLocation, getCameraMatrix() * transformMatrix);
+
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 3200);
+}
+
+
+void Viewer::setMaterial(const Colour& kd, const Colour& ks, double shininess, QMatrix4x4 transformMatrix) {
     mProgram.setUniformValue(mDiffuseLocation, QVector3D(kd.R(), kd.G(), kd.B()));
     mProgram.setUniformValue(mSpecularLocation, QVector3D(ks.R(), ks.G(), ks.B()));
     mProgram.setUniformValue(mShininessLocation, (float) shininess);

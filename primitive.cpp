@@ -5,12 +5,23 @@ Primitive::~Primitive()
 {
 }
 
+
+Cube::~Cube()
+{
+}
+
+void Cube::walk_gl(QMatrix4x4 transformMatrix) const
+{
+	AppWindow::m_viewer->draw_cube(transformMatrix);
+}
+
+
 Sphere::~Sphere()
 {
 }
 
-void Sphere::walk_gl(int colourID, QMatrix4x4 transformMatrix) const
+void Sphere::walk_gl(QMatrix4x4 transformMatrix) const
 {
-	// AppWindow::m_viewer->draw_sphere(colourID, transformMatrix);
+	AppWindow::m_viewer->draw_sphere(transformMatrix);
 }
 

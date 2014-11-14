@@ -7,13 +7,19 @@
 class Primitive {
 public:
   virtual ~Primitive();
-  virtual void walk_gl(int colourID, QMatrix4x4 transformMatrix) const = 0;
+  virtual void walk_gl(QMatrix4x4 transformMatrix) const = 0;
+};
+
+class Cube : public Primitive {
+public:
+  virtual ~Cube();
+  virtual void walk_gl(QMatrix4x4 transformMatrix) const;
 };
 
 class Sphere : public Primitive {
 public:
   virtual ~Sphere();
-  virtual void walk_gl(int colourID, QMatrix4x4 transformMatrix) const;
+  virtual void walk_gl(QMatrix4x4 transformMatrix) const;
 };
 
 #endif
