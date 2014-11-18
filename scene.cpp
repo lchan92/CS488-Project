@@ -16,7 +16,6 @@ SceneNode::~SceneNode()
 
 void SceneNode::walk_gl(QMatrix4x4 transformMatrix) const
 {
-    std::cout << "scene node" << std::endl;
     std::list<SceneNode*>::const_iterator it;
     for (it = m_children.begin(); it != m_children.end(); it++) {
         (*it)->walk_gl(transformMatrix * m_translation * m_rotation * m_trans);
@@ -81,7 +80,6 @@ JointNode::~JointNode()
 
 void JointNode::walk_gl(QMatrix4x4 transformMatrix) const
 {
-    std::cout << "joint node" << std::endl;
     std::list<SceneNode*>::const_iterator it;
     for (it = m_children.begin(); it != m_children.end(); it++) {
         (*it)->walk_gl(transformMatrix * m_translation * m_rotation * m_trans * m_jointRotation);
@@ -131,7 +129,6 @@ GeometryNode::~GeometryNode()
 
 void GeometryNode::walk_gl(QMatrix4x4 transformMatrix) const
 {
-  std::cout << "geo node" << std::endl;
-  // m_material->apply_gl(transformMatrix * m_trans);
-  // m_primitive->walk_gl(transformMatrix * m_trans);
+  m_material->apply_gl(transformMatrix * m_trans);
+  m_primitive->walk_gl(transformMatrix * m_trans);
 }

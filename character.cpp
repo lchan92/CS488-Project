@@ -3,6 +3,8 @@
 
 
 Character::Character() {
+	MAX_JUMPS = 2;
+
 	mJumpCount = 0;
 }
 

@@ -17,7 +17,7 @@ public:
 	void jump();
 
 private:
-	const int MAX_JUMPS = 2;
+	int MAX_JUMPS;
 
 	int mJumpCount;
 

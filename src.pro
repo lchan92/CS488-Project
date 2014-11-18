@@ -5,9 +5,10 @@
 QT += opengl widgets
 CONFIG += c++11
 QMAKE_CXXFLAGS += -W -Wall -g 
-LIBS += -lGLU
+LIBS += -lGLU -llua5.1
 TEMPLATE = app
 TARGET = game
+INCLUDEPATH += /usr/include/lua5.1
 
 # Input
 HEADERS += algebra.hpp \
@@ -16,7 +17,10 @@ HEADERS += algebra.hpp \
            scene.hpp \
            AppWindow.hpp \
            Viewer.hpp \
-           character.hpp
+           character.hpp \
+           obstacle_map.hpp \
+           scene_lua.hpp \
+           lua488.hpp
 SOURCES += algebra.cpp \
            main.cpp \
            material.cpp \
@@ -24,4 +28,6 @@ SOURCES += algebra.cpp \
            scene.cpp \
            AppWindow.cpp \ 
            Viewer.cpp \
-           character.cpp
+           character.cpp \
+           obstacle_map.cpp \
+           scene_lua.cpp
