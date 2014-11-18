@@ -7,13 +7,14 @@
 #include <QAction>
 #include <vector>
 #include "Viewer.hpp"
+#include "scene.hpp"
 
 class AppWindow : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    AppWindow();
+    AppWindow(SceneNode* modelNode);
 	static Viewer* m_viewer;
 
 private:

@@ -72,6 +72,32 @@ protected:
 
 
 
+class JointNode : public SceneNode {
+public:
+  JointNode(const std::string& name);
+  virtual ~JointNode();
+
+  virtual void walk_gl(QMatrix4x4 transformMatrix = QMatrix4x4()) const;
+
+  void set_joint_x(double min, double init, double max);
+  void set_joint_y(double min, double init, double max);
+
+  struct JointRange {
+    double min, init, max;
+  };
+
+protected:
+  JointRange m_joint_x, m_joint_y;
+  QMatrix4x4 m_jointRotation; // ROTATION FOR JUST THE JOINTS
+
+  int m_angleX, m_angleY;
+};
+
+
+
+
+
+
 class GeometryNode : public SceneNode {
 public:
   GeometryNode(const std::string& name,

@@ -15,6 +15,7 @@
 
 #include "scene.hpp"
 #include "character.hpp"
+#include "obstacle_map.hpp"
 
 
 class Viewer : public QGLWidget {
@@ -33,6 +34,8 @@ public:
 
     void setMaterial(const Colour& kd, const Colour& ks, double shininess, QMatrix4x4 transformMatrix);
 
+    void setModelRoot(SceneNode* node);
+    void setMapRoot(SceneNode* node);
     // If you want to render a new frame, call do not call paintGL(),
     // instead, call update() to ensure that the view gets a paint 
     // event.
@@ -71,6 +74,10 @@ private:
     std::vector<GLfloat> mSphereVerts;
 
     Character *mPlayer;
+    ObstacleMap *mMap;
+
+    SceneNode *mModelRoot, *mMapRoot;
+
     bool mLeftFlag, mRightFlag, mForwardFlag, mBackwardFlag;
     int mJumpCount;
 

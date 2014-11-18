@@ -2,6 +2,7 @@
 #define CHARACTER_HPP
 
 #include <iostream>
+#include <QtOpenGL>
 
 class Character {
 public:
@@ -19,6 +20,8 @@ private:
 	const int MAX_JUMPS = 2;
 
 	int mJumpCount;
+
+	QVector3D mStartPosition, mPosition;
 };
 
 #endif

@@ -25,6 +25,7 @@ Viewer::Viewer(const QGLFormat& format, QWidget *parent)
     sphereSetup();
 
     mPlayer = new Character();
+    mMap = new ObstacleMap();
 }
 
 Viewer::~Viewer() {
@@ -141,7 +142,7 @@ void Viewer::paintGL() {
     // Clear framebuffer
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // draw_cube(QMatrix4x4());
+    mModelRoot->walk_gl();
 }
 
 
@@ -268,6 +269,15 @@ void Viewer::keyReleaseEvent(QKeyEvent *event) {
 
 
 
+// NODE SETUP
+
+void Viewer::setModelRoot(SceneNode* node) {
+    mModelRoot = node;
+}
+
+void Viewer::setMapRoot(SceneNode* node) {
+    mMapRoot = node;
+}
 
 
 

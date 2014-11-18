@@ -4,7 +4,7 @@
 
 Viewer* AppWindow::m_viewer = NULL;
 
-AppWindow::AppWindow() {
+AppWindow::AppWindow(SceneNode* modelNode) {
     setWindowTitle("Project");
 
     QGLFormat glFormat;
@@ -13,8 +13,11 @@ AppWindow::AppWindow() {
     glFormat.setSampleBuffers(true);
 
     QVBoxLayout *layout = new QVBoxLayout;
+
     m_viewer = new Viewer(glFormat, this);
+    m_viewer->setModelRoot(modelNode);
     layout->addWidget(m_viewer);
+
     setCentralWidget(new QWidget);
     centralWidget()->setLayout(layout);
 
