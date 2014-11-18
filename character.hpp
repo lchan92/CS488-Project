@@ -3,11 +3,15 @@
 
 #include <iostream>
 #include <QtOpenGL>
+#include "scene.hpp"
 
 class Character {
 public:
 	Character();
 	virtual ~Character();
+
+	void setRoot(SceneNode* root);
+	void draw();
 
 	// movement functions
 	void walkForward();
@@ -16,12 +20,20 @@ public:
 	void strafeRight();
 	void jump();
 
+	void applyGravity();
+
 private:
+	// constants
 	int MAX_JUMPS;
+	float GRAVITY;
 
 	int mJumpCount;
 
-	QVector3D mStartPosition, mPosition;
+	//PHYSICS
+	float mVerticalVelocity;
+
+
+	SceneNode* mRoot;
 };
 
 #endif

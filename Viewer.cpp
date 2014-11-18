@@ -26,6 +26,11 @@ Viewer::Viewer(const QGLFormat& format, QWidget *parent)
 
     mPlayer = new Character();
     mMap = new ObstacleMap();
+
+    // positions for all objects are updated every second
+    QTimer *timer = new QTimer(this);
+    connect(timer, SIGNAL(timeout()), this, SLOT(updatePositions()));
+    timer->start(20);
 }
 
 Viewer::~Viewer() {
@@ -50,7 +55,7 @@ void Viewer::initializeGL() {
     glShadeModel(GL_SMOOTH);
     glClearColor( 0.4, 0.4, 0.4, 0.0 );
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
+    // glEnable(GL_CULL_FACE);
 
     if (!mProgram.addShaderFromSourceFile(QGLShader::Vertex, "shader.vert")) {
         std::cerr << "Cannot load vertex shader." << std::endl;
@@ -108,7 +113,7 @@ void Viewer::initializeGL() {
         std::cerr << "could not bind cube vertex buffer to the context." << std::endl;
         return;
     }
-    mCubeBufferObject.allocate(&mCubeVerts, 36 * 3 * sizeof(float));
+    mCubeBufferObject.allocate(&mCubeVerts[0], 36 * 3 * sizeof(float));
 
     if (!mSphereBufferObject.bind()) {
         std::cerr << "could not bind sphere vertex buffer to the context." << std::endl;
@@ -142,7 +147,8 @@ void Viewer::paintGL() {
     // Clear framebuffer
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    mModelRoot->walk_gl();
+    mPlayer->draw();
+    mMap->draw();
 }
 
 
@@ -272,13 +278,20 @@ void Viewer::keyReleaseEvent(QKeyEvent *event) {
 // NODE SETUP
 
 void Viewer::setModelRoot(SceneNode* node) {
-    mModelRoot = node;
+    mPlayer->setRoot(node);
 }
 
 void Viewer::setMapRoot(SceneNode* node) {
-    mMapRoot = node;
+    mMap->setRoot(node);
 }
 
+
+
+// MOTION/PHYSICS
+void Viewer::updatePositions() {
+    mPlayer->applyGravity();
+    update();
+}
 
 
 // DRAWING STUFF

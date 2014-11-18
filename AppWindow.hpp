@@ -14,7 +14,7 @@ class AppWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    AppWindow(SceneNode* modelNode);
+    AppWindow(SceneNode* modelRoot, SceneNode* mapRoot);
 	static Viewer* m_viewer;
 
 private:

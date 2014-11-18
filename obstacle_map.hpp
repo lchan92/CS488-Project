@@ -9,9 +9,12 @@ public:
 	ObstacleMap();
 	virtual ~ObstacleMap();
 
+	void setRoot(SceneNode* root);
+	void draw();
+
 private:
 	// hierarchical tree to store the obstacle blocks
-	SceneNode *root;
+	SceneNode *mRoot;
 };
 
 #endif

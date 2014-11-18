@@ -9,21 +9,31 @@ int main(int argc, char** argv)
 {
     QApplication app(argc, argv);
 
-    std::string filename = "puppet.lua";
+    std::string modelFilename = "puppet.lua";
+    std::string mapFilename = "map.lua";
+
     if (argc >= 2) {
-        filename = argv[1];
+        modelFilename = argv[1];
+        mapFilename = argv[2];
     }
 
     // This is how you might import a scene
-    SceneNode* root = import_lua(filename);
-    if (!root) {
-        std::cerr << "Could not open " << filename << std::endl;
+    SceneNode* modelRoot = import_lua(modelFilename);
+    if (!modelRoot) {
+        std::cerr << "Could not open " << modelFilename << std::endl;
+        return 1;
+    }
+    SceneNode* mapRoot = import_lua(mapFilename);
+    if (!mapRoot) {
+        std::cerr << "Could not open " << mapFilename << std::endl;
         return 1;
     }
  
-    AppWindow* window = new AppWindow(root);
 
-    window->resize(window->sizeHint());
+
+    AppWindow* window = new AppWindow(modelRoot, mapRoot);
+
+    window->resize(QSize(800,600));
     int desktopArea = QApplication::desktop()->width() * 
                       QApplication::desktop()->height();
 

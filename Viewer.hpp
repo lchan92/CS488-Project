@@ -40,6 +40,9 @@ public:
     // instead, call update() to ensure that the view gets a paint 
     // event.
 
+public slots:
+    void updatePositions();
+
 protected:
 
     // Events we implement
@@ -75,8 +78,6 @@ private:
 
     Character *mPlayer;
     ObstacleMap *mMap;
-
-    SceneNode *mModelRoot, *mMapRoot;
 
     bool mLeftFlag, mRightFlag, mForwardFlag, mBackwardFlag;
     int mJumpCount;
