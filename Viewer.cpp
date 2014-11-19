@@ -181,7 +181,7 @@ QMatrix4x4 Viewer::getCameraMatrix() {
     cameraTransformation.translate(0,10,20);
 
     QVector3D cameraPosition = (cameraTransformation * QVector4D(0,0,0,1)).toVector3D();
-    QVector3D cameraUpDirection = mCameraTransformation * QVector3D(0, 1, 0);
+    QVector3D cameraUpDirection = QVector3D(0, 1, 0);
 
     vMatrix.lookAt(cameraPosition, modelPosition, cameraUpDirection);
 
@@ -309,14 +309,18 @@ void Viewer::updatePositions() {
     // mPlayer->applyGravity();
 
     if (mForwardFlag) {
+        mCameraTransformation.translate(0,0,-0.2);
         mPlayer->walkForward();
     } else if (mBackwardFlag) {
+        mCameraTransformation.translate(0,0,0.2);
         mPlayer->walkBackward();
     }
 
     if (mLeftFlag) {
+        mCameraTransformation.translate(-0.2,0,0);
         mPlayer->strafeLeft();
     } else if (mRightFlag) {
+        mCameraTransformation.translate(0.2,0,0);
         mPlayer->strafeRight();
     }
 

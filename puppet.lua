@@ -8,7 +8,7 @@
 -- probably want to make sure you get reasonable results with it!
 
 rootnode = gr.node('root')
-rootnode:scale(0.5,0.5,0.5)
+rootnode:scale(0.2,0.2,0.2)
 
 red = gr.material({1.0, 0.0, 0.0}, {0.1, 0.1, 0.1}, 10)
 blue = gr.material({0.0, 0.0, 1.0}, {0.1, 0.1, 0.1}, 10)
