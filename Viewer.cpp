@@ -21,6 +21,7 @@ Viewer::Viewer(const QGLFormat& format, QWidget *parent)
 {
     setFocusPolicy(Qt::StrongFocus);
     setMouseTracking(true);
+    setCursor(Qt::BlankCursor);
 
     //FLAGS
     mForwardFlag = false;
@@ -173,14 +174,16 @@ void Viewer::resizeGL(int width, int height) {
 }
 
 QMatrix4x4 Viewer::getCameraMatrix() {
-    // Todo: Ask if we want to keep this.
     QMatrix4x4 vMatrix;
+    QVector3D modelPosition = mPlayer->getPosition();
 
-    QMatrix4x4 cameraTransformation;
-    QVector3D cameraPosition = cameraTransformation * QVector3D(0, 0, 20.0);
-    QVector3D cameraUpDirection = cameraTransformation * QVector3D(0, 1, 0);
+    QMatrix4x4 cameraTransformation = mCameraTransformation;
+    cameraTransformation.translate(0,10,20);
 
-    vMatrix.lookAt(cameraPosition, QVector3D(0, 0, 0), cameraUpDirection);
+    QVector3D cameraPosition = (cameraTransformation * QVector4D(0,0,0,1)).toVector3D();
+    QVector3D cameraUpDirection = mCameraTransformation * QVector3D(0, 1, 0);
+
+    vMatrix.lookAt(cameraPosition, modelPosition, cameraUpDirection);
 
     return mPerspMatrix * vMatrix * mTransformMatrix;
 }
@@ -213,13 +216,16 @@ void Viewer::mouseReleaseEvent(QMouseEvent *event) {
 }
 
 void Viewer::mouseMoveEvent(QMouseEvent *event) {
-    int oldX = mCurrentX;
-    int oldY = mCurrentY;
-    mCurrentX = event->x() - width() / 2;
-    mCurrentY = event->y() - height() / 2;
+    QPoint center = mapToGlobal(rect().center());
+    QPoint mouseMove = (event->globalPos() - center);
+    if (mouseMove.isNull())
+        return;
 
-    float deltaX = mCurrentX - oldX;
-    // rotateWorld(-deltaX,0,1,0);
+    float deltaX = mouseMove.x();
+    mPlayer->rotateY(-deltaX/10);
+    mCameraTransformation.rotate(-deltaX/10, 0, 1, 0);
+
+    cursor().setPos(center);
 }
 
 void Viewer::keyPressEvent(QKeyEvent *event) {

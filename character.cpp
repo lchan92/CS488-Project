@@ -1,4 +1,5 @@
 #include "character.hpp"
+#include <iostream>
 
 
 
@@ -21,6 +22,17 @@ void Character::draw() {
 	mRoot->walk_gl();
 }
 
+QVector3D Character::getPosition() {
+	QVector4D pos = mRoot->m_trans * QVector4D(0,0,0,1);
+
+	return pos.toVector3D();
+}
+
+
+
+void Character::rotateY(float amount) {
+	mRoot->rotate('y', amount);
+}
 
 void Character::walkForward() {
 	mRoot->translate(QVector3D(0,0,-1));

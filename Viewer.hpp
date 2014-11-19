@@ -83,7 +83,7 @@ private:
     int mJumpCount;
 
     // mouse
-    int mCurrentX, mCurrentY;
+    QMatrix4x4 mCameraTransformation;
 
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 1, 0))

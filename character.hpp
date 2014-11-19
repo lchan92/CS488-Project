@@ -12,8 +12,10 @@ public:
 
 	void setRoot(SceneNode* root);
 	void draw();
+	QVector3D getPosition();
 
 	// movement functions
+	void rotateY(float amount);
 	void walkForward();
 	void walkBackward();
 	void strafeLeft();
