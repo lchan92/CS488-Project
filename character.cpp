@@ -23,19 +23,19 @@ void Character::draw() {
 
 
 void Character::walkForward() {
-
+	mRoot->translate(QVector3D(0,0,-1));
 }
 
 void Character::walkBackward() {
-
+	mRoot->translate(QVector3D(0,0,1));
 }
 
 void Character::strafeLeft() {
-
+	mRoot->translate(QVector3D(-1,0,0));
 }
 
 void Character::strafeRight() {
-
+	mRoot->translate(QVector3D(1,0,0));
 }
 
 void Character::jump() {

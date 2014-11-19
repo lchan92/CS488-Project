@@ -20,6 +20,13 @@ Viewer::Viewer(const QGLFormat& format, QWidget *parent)
 #endif
 {
     setFocusPolicy(Qt::StrongFocus);
+    setMouseTracking(true);
+
+    //FLAGS
+    mForwardFlag = false;
+    mBackwardFlag = false;
+    mLeftFlag = false;
+    mRightFlag = false;
 
     cubeSetup();
     sphereSetup();
@@ -179,17 +186,14 @@ QMatrix4x4 Viewer::getCameraMatrix() {
 }
 
 void Viewer::translateWorld(float x, float y, float z) {
-    // Todo: Ask if we want to keep this.
     mTransformMatrix.translate(x, y, z);
 }
 
-void Viewer::rotateWorld(float x, float y, float z) {
-    // Todo: Ask if we want to keep this.
-    mTransformMatrix.rotate(x, y, z);
+void Viewer::rotateWorld(float theta, float x, float y, float z) {
+    mTransformMatrix.rotate(theta, x, y, z);
 }
 
 void Viewer::scaleWorld(float x, float y, float z) {
-    // Todo: Ask if we want to keep this.
     mTransformMatrix.scale(x, y, z);
 }
 
@@ -209,6 +213,13 @@ void Viewer::mouseReleaseEvent(QMouseEvent *event) {
 }
 
 void Viewer::mouseMoveEvent(QMouseEvent *event) {
+    int oldX = mCurrentX;
+    int oldY = mCurrentY;
+    mCurrentX = event->x() - width() / 2;
+    mCurrentY = event->y() - height() / 2;
+
+    float deltaX = mCurrentX - oldX;
+    // rotateWorld(-deltaX,0,1,0);
 }
 
 void Viewer::keyPressEvent(QKeyEvent *event) {
@@ -289,7 +300,20 @@ void Viewer::setMapRoot(SceneNode* node) {
 
 // MOTION/PHYSICS
 void Viewer::updatePositions() {
-    mPlayer->applyGravity();
+    // mPlayer->applyGravity();
+
+    if (mForwardFlag) {
+        mPlayer->walkForward();
+    } else if (mBackwardFlag) {
+        mPlayer->walkBackward();
+    }
+
+    if (mLeftFlag) {
+        mPlayer->strafeLeft();
+    } else if (mRightFlag) {
+        mPlayer->strafeRight();
+    }
+
     update();
 }
 

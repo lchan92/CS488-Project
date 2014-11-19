@@ -66,7 +66,7 @@ private:
 
     QMatrix4x4 getCameraMatrix();
     void translateWorld(float x, float y, float z);
-    void rotateWorld(float x, float y, float z);
+    void rotateWorld(float theta, float x, float y, float z);
     void scaleWorld(float x, float y, float z);
     void set_colour(const QColor& col);
 
@@ -81,6 +81,9 @@ private:
 
     bool mLeftFlag, mRightFlag, mForwardFlag, mBackwardFlag;
     int mJumpCount;
+
+    // mouse
+    int mCurrentX, mCurrentY;
 
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 1, 0))
