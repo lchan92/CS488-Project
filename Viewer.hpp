@@ -36,6 +36,7 @@ public:
 
     void setModelRoot(SceneNode* node);
     void setMapRoot(SceneNode* node);
+
     // If you want to render a new frame, call do not call paintGL(),
     // instead, call update() to ensure that the view gets a paint 
     // event.

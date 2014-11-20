@@ -8,6 +8,7 @@ ObstacleMap::~ObstacleMap() {}
 
 void ObstacleMap::setRoot(SceneNode* root) {
 	mRoot = root;
+	mRoot->setBoundaries();
 }
 
 void ObstacleMap::draw() {

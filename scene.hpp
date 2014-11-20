@@ -5,6 +5,7 @@
 // #include "algebra.hpp"
 #include <QMatrix4x4>
 #include <QVector3D>
+#include <QVector4D>
 #include "primitive.hpp"
 #include "material.hpp"
 
@@ -14,6 +15,9 @@ public:
   virtual ~SceneNode();
 
   virtual void walk_gl(QMatrix4x4 transformMatrix = QMatrix4x4()) const;
+  virtual void setBoundaries(QMatrix4x4 transformMatrix = QMatrix4x4()) const;
+
+  virtual bool faceIntersectsBox(QVector4D p1, QVector4D p2);
 
   const QMatrix4x4& get_transform() const { return m_trans; }
   const QMatrix4x4& get_inverse() const { return m_invtrans; }
@@ -78,6 +82,9 @@ public:
   virtual ~JointNode();
 
   virtual void walk_gl(QMatrix4x4 transformMatrix = QMatrix4x4()) const;
+  virtual void setBoundaries(QMatrix4x4 transformMatrix = QMatrix4x4()) const;
+
+  virtual bool faceIntersectsBox(QVector4D p1, QVector4D p2);
 
   void set_joint_x(double min, double init, double max);
   void set_joint_y(double min, double init, double max);
@@ -105,7 +112,10 @@ public:
   virtual ~GeometryNode();
 
   virtual void walk_gl(QMatrix4x4 transformMatrix = QMatrix4x4()) const;
+  virtual void setBoundaries(QMatrix4x4 transformMatrix = QMatrix4x4()) const;
 
+  virtual bool faceIntersectsBox(QVector4D p1, QVector4D p2);
+  
   const Material* get_material() const;
   Material* get_material();
 

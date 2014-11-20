@@ -151,9 +151,9 @@ int gr_sphere_cmd(lua_State* L)
   return 1;
 }
 
-// Create a cube node
+// Create a block node
 extern "C"
-int gr_cube_cmd(lua_State* L)
+int gr_block_cmd(lua_State* L)
 {
   GRLUA_DEBUG_CALL;
   
@@ -161,7 +161,7 @@ int gr_cube_cmd(lua_State* L)
   data->node = 0;
   
   const char* name = luaL_checkstring(L, 1);
-  data->node = new GeometryNode(name, new Cube());
+  data->node = new GeometryNode(name, new Block());
 
   luaL_getmetatable(L, "gr.node");
   lua_setmetatable(L, -2);
@@ -347,7 +347,7 @@ static const luaL_reg grlib_functions[] = {
   {"joint", gr_joint_cmd},
   {"sphere", gr_sphere_cmd},
   {"material", gr_material_cmd},
-  {"cube", gr_cube_cmd},
+  {"block", gr_block_cmd},
   {0, 0}
 };
 

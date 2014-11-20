@@ -17,6 +17,7 @@ AppWindow::AppWindow(SceneNode* modelRoot, SceneNode* mapRoot) {
     m_viewer = new Viewer(glFormat, this);
     m_viewer->setModelRoot(modelRoot);
     m_viewer->setMapRoot(mapRoot);
+    
     layout->addWidget(m_viewer);
 
     setCentralWidget(new QWidget);

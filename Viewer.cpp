@@ -300,28 +300,33 @@ void Viewer::setModelRoot(SceneNode* node) {
 
 void Viewer::setMapRoot(SceneNode* node) {
     mMap->setRoot(node);
+    mPlayer->setMapRoot(node);
 }
 
 
 
 // MOTION/PHYSICS
 void Viewer::updatePositions() {
-    // mPlayer->applyGravity();
+    mPlayer->applyGravity();
 
     if (mForwardFlag) {
-        mCameraTransformation.translate(0,0,-0.2);
-        mPlayer->walkForward();
+        if (mPlayer->walkForward()) {
+            mCameraTransformation.translate(0,0,-1);
+        }
     } else if (mBackwardFlag) {
-        mCameraTransformation.translate(0,0,0.2);
-        mPlayer->walkBackward();
+        if (mPlayer->walkBackward()) {
+            mCameraTransformation.translate(0,0,1);
+        }
     }
 
     if (mLeftFlag) {
-        mCameraTransformation.translate(-0.2,0,0);
-        mPlayer->strafeLeft();
+        if (mPlayer->strafeLeft()) {
+            mCameraTransformation.translate(-1,0,0);
+        }
     } else if (mRightFlag) {
-        mCameraTransformation.translate(0.2,0,0);
-        mPlayer->strafeRight();
+        if (mPlayer->strafeRight()) {
+            mCameraTransformation.translate(1,0,0);
+        }
     }
 
     update();

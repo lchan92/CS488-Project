@@ -11,20 +11,28 @@ public:
 	virtual ~Character();
 
 	void setRoot(SceneNode* root);
+	void setMapRoot(SceneNode* mapRoot);
+
 	void draw();
+
 	QVector3D getPosition();
+
+	void updatePosition();
+	void updateBoundingBox();
 
 	// movement functions
 	void rotateY(float amount);
-	void walkForward();
-	void walkBackward();
-	void strafeLeft();
-	void strafeRight();
+	bool walkForward();
+	bool walkBackward();
+	bool strafeLeft();
+	bool strafeRight();
 	void jump();
 
 	void applyGravity();
 
 private:
+	bool detectCollisions();
+
 	// constants
 	int MAX_JUMPS;
 	float GRAVITY;
@@ -34,8 +42,11 @@ private:
 	//PHYSICS
 	float mVerticalVelocity;
 
+	QVector4D mPosition;
+	//BOUNDING BOX
+	QVector4D mVertex1, mVertex2;
 
-	SceneNode* mRoot;
+	SceneNode *mRoot, *mMapRoot;
 };
 
 #endif

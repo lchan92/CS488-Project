@@ -22,6 +22,28 @@ void SceneNode::walk_gl(QMatrix4x4 transformMatrix) const
     }
 }
 
+void SceneNode::setBoundaries(QMatrix4x4 transformMatrix) const
+{
+    std::list<SceneNode*>::const_iterator it;
+    for (it = m_children.begin(); it != m_children.end(); it++) {
+        (*it)->setBoundaries(transformMatrix * m_translation * m_rotation * m_trans);
+    }
+}
+
+bool SceneNode::faceIntersectsBox(QVector4D p1, QVector4D p2) 
+{
+    bool result = false;
+
+    std::list<SceneNode*>::const_iterator it;
+    for (it = m_children.begin(); it != m_children.end(); it++) {
+        result = result || (*it)->faceIntersectsBox(p1, p2);
+    }
+
+    return result;
+}
+
+
+
 void SceneNode::rotate(char axis, double angle)
 {
   switch(axis) {
@@ -86,6 +108,28 @@ void JointNode::walk_gl(QMatrix4x4 transformMatrix) const
     }
 }
 
+void JointNode::setBoundaries(QMatrix4x4 transformMatrix) const
+{
+    std::list<SceneNode*>::const_iterator it;
+    for (it = m_children.begin(); it != m_children.end(); it++) {
+        (*it)->setBoundaries(transformMatrix * m_translation * m_rotation * m_trans * m_jointRotation);
+    }
+}
+
+bool JointNode::faceIntersectsBox(QVector4D p1, QVector4D p2) 
+{
+    bool result = false;
+
+    std::list<SceneNode*>::const_iterator it;
+    for (it = m_children.begin(); it != m_children.end(); it++) {
+        result = result || (*it)->faceIntersectsBox(p1, p2);
+    }
+
+    return result;
+}
+
+
+
 void JointNode::set_joint_x(double min, double init, double max)
 {
   m_joint_x.min = min;
@@ -131,4 +175,14 @@ void GeometryNode::walk_gl(QMatrix4x4 transformMatrix) const
 {
   m_material->apply_gl(transformMatrix * m_trans);
   m_primitive->walk_gl(transformMatrix * m_trans);
+}
+
+void GeometryNode::setBoundaries(QMatrix4x4 transformMatrix) const
+{
+  m_primitive->setBoundaries(transformMatrix * m_trans);
+}
+
+bool GeometryNode::faceIntersectsBox(QVector4D p1, QVector4D p2) 
+{
+    return m_primitive->faceIntersectsBox(p1, p2);
 }

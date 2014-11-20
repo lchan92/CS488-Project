@@ -10,6 +10,7 @@ public:
 	virtual ~ObstacleMap();
 
 	void setRoot(SceneNode* root);
+
 	void draw();
 
 private:
