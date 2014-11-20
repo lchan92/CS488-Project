@@ -22,7 +22,11 @@ public:
 	virtual bool faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocity, int direction);
 private:
 	bool intersectsFront(QVector4D p1, QVector4D p2, double* velocity);
+	bool intersectsBack(QVector4D p1, QVector4D p2, double* velocity);
+	bool intersectsRight(QVector4D p1, QVector4D p2, double* velocity);
+	bool intersectsLeft(QVector4D p1, QVector4D p2, double* velocity);
 	bool intersectsTop(QVector4D p1, QVector4D p2, double* velocity);
+	bool intersectsBottom(QVector4D p1, QVector4D p2, double* velocity);
 
 	bool betweenLeftRight(double x, double left, double right);
 	bool betweenTopBottom(double y, double top, double bottom);

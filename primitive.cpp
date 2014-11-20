@@ -40,13 +40,19 @@ bool Block::faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocity, int 
 			return intersectsFront(p1, p2, velocity);
 			break;
 		case 1:
+			return intersectsBack(p1, p2, velocity);
 			break;
 		case 2:
+			return intersectsRight(p1, p2, velocity);
 			break;
 		case 3:
+			return intersectsLeft(p1, p2, velocity);
 			break;
 		case 4:
 			return intersectsTop(p1, p2, velocity);
+			break;
+		case 5:
+			return intersectsBottom(p1, p2, velocity);
 			break;  
 		default:
 			break;
@@ -60,13 +66,54 @@ bool Block::faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocity, int 
 bool Block::intersectsFront(QVector4D p1, QVector4D p2, double* velocity) {
 	double z = fmin(p1.z(), p2.z());
 
-
 	if (z >= mVertex1.z() && (z + (*velocity)) <= mVertex1.z() &&
 		(betweenLeftRight(p1.x(), mVertex1.x(), mVertex2.x()) || 
 			betweenLeftRight(p2.x(), mVertex1.x(), mVertex2.x())) &&
 		(betweenTopBottom(p1.y(), mVertex2.y(), mVertex1.y()) ||
 			betweenTopBottom(p2.y(), mVertex2.y(), mVertex1.y()))) {
 		double ratio = (mVertex1.z() - z)/(*velocity);
+		*velocity = *velocity * ratio;
+		return true;
+	}
+}
+
+bool Block::intersectsBack(QVector4D p1, QVector4D p2, double* velocity) {
+	double z = fmax(p1.z(), p2.z());
+
+	if (z <= mVertex2.z() && (z + (*velocity)) >= mVertex2.z() &&
+		(betweenLeftRight(p1.x(), mVertex1.x(), mVertex2.x()) || 
+			betweenLeftRight(p2.x(), mVertex1.x(), mVertex2.x())) &&
+		(betweenTopBottom(p1.y(), mVertex2.y(), mVertex1.y()) ||
+			betweenTopBottom(p2.y(), mVertex2.y(), mVertex1.y()))) {
+		double ratio = (mVertex2.z() - z)/(*velocity);
+		*velocity = *velocity * ratio;
+		return true;
+	}
+}
+
+bool Block::intersectsRight(QVector4D p1, QVector4D p2, double* velocity) {
+	double x = fmin(p1.x(), p2.x());
+
+	if (x >= mVertex2.x() && (x + (*velocity)) <= mVertex2.x() &&
+		(betweenTopBottom(p1.y(), mVertex2.y(), mVertex1.y()) ||
+			betweenTopBottom(p2.y(), mVertex2.y(), mVertex1.y())) &&
+		(betweenFrontBack(p1.z(), mVertex1.z(), mVertex2.z()) ||
+			betweenFrontBack(p2.z(), mVertex1.z(), mVertex2.z()))) {
+		double ratio = (mVertex2.x() - x)/(*velocity);
+		*velocity = *velocity * ratio;
+		return true;
+	}
+}
+
+bool Block::intersectsLeft(QVector4D p1, QVector4D p2, double* velocity) {
+	double x = fmax(p1.x(), p2.x());
+
+	if (x <= mVertex1.x() && (x + (*velocity)) >= mVertex1.x() &&
+		(betweenTopBottom(p1.y(), mVertex2.y(), mVertex1.y()) ||
+			betweenTopBottom(p2.y(), mVertex2.y(), mVertex1.y())) &&
+		(betweenFrontBack(p1.z(), mVertex1.z(), mVertex2.z()) ||
+			betweenFrontBack(p2.z(), mVertex1.z(), mVertex2.z()))) {
+		double ratio = (mVertex1.x() - x)/(*velocity);
 		*velocity = *velocity * ratio;
 		return true;
 	}
@@ -84,6 +131,22 @@ bool Block::intersectsTop(QVector4D p1, QVector4D p2, double* velocity) {
 			betweenFrontBack(p2.z(), mVertex1.z(), mVertex2.z()))) {
 		// collision detected
 		double ratio = (mVertex2.y() - y)/(*velocity);
+		*velocity = *velocity * ratio;
+		return true;
+	}
+
+	return false;
+}
+
+bool Block::intersectsBottom(QVector4D p1, QVector4D p2, double* velocity) {
+	double y = fmax(p1.y(), p2.y());
+
+	if (y <= mVertex1.y() && (y + (*velocity)) >= mVertex1.y() &&
+		(betweenLeftRight(p1.x(), mVertex1.x(), mVertex2.x()) || 
+			betweenLeftRight(p2.x(), mVertex1.x(), mVertex2.x())) &&
+		(betweenFrontBack(p1.z(), mVertex1.z(), mVertex2.z()) ||
+			betweenFrontBack(p2.z(), mVertex1.z(), mVertex2.z()))) {
+		double ratio = (mVertex1.y() - y)/(*velocity);
 		*velocity = *velocity * ratio;
 		return true;
 	}

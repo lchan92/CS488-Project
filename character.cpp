@@ -76,46 +76,50 @@ bool Character::walkForward(double* velocity) {
 }
 
 bool Character::walkBackward(double* velocity) {
-	double diff;
+	*velocity = 1;
 
-	// if (!mMapRoot->faceIntersectsBox(nearBottomLeft, nearTopRight, &diff)) {
-		mRoot->translate(QVector3D(0,0,1));
+	if (mMapRoot->faceIntersectsBox(mVertex1, mVertex2, velocity, 1)) {
+		mRoot->translate(QVector3D(0,0,*velocity));
 		updatePosition();
 
 		return true;
-	// }
+	}
+
+	mRoot->translate(QVector3D(0,0,*velocity));
+	updatePosition();
 
 	return false;
 }
 
 bool Character::strafeLeft(double* velocity) {
-	double diff;
+	*velocity = -1;
 
-	QVector4D nearBottomRight = QVector4D(mVertex2.x(), mVertex1.y(), mVertex1.z(), 1);
-	QVector4D farTopRight = mVertex2;
-
-	// if (!mMapRoot->faceIntersectsBox(nearBottomRight, farTopRight, &diff)) {
-		mRoot->translate(QVector3D(-1,0,0));
+	if (mMapRoot->faceIntersectsBox(mVertex1, mVertex2, velocity, 2)) {
+		mRoot->translate(QVector3D(*velocity,0,0));
 		updatePosition();
 
 		return true;
-	// }
+	}
+
+	mRoot->translate(QVector3D(*velocity,0,0));
+	updatePosition();
 
 	return false;
 }
 
 bool Character::strafeRight(double* velocity) {
-	double diff;
+	*velocity = 1;
 
-	QVector4D nearBottomLeft = mVertex1;
-	QVector4D farTopLeft = QVector4D(mVertex1.x(), mVertex2.y(), mVertex2.z(), 1);
-
-	// if (!mMapRoot->faceIntersectsBox(nearBottomLeft, farTopLeft, &diff)) {
-		mRoot->translate(QVector3D(1,0,0));
+	if (mMapRoot->faceIntersectsBox(mVertex1, mVertex2, velocity, 3)) {
+		mRoot->translate(QVector3D(*velocity,0,0));
 		updatePosition();
 
 		return true;
-	// }
+	}
+
+	mRoot->translate(QVector3D(*velocity,0,0));
+	updatePosition();
+
 	return false;
 }
 
@@ -136,14 +140,16 @@ void Character::applyGravity() {
 	double velocity;
 	velocity = mVerticalVelocity;
 
-	if (mMapRoot->faceIntersectsBox(mVertex1, mVertex2, &velocity, 4))	{
+	int direction = (velocity < 0)? 4: 5; //intersect with top if falling, bottom if rising
+
+	if (mMapRoot->faceIntersectsBox(mVertex1, mVertex2, &velocity, direction))	{
 		// reset position of character to not get stuck in physics when landing
 		mVerticalVelocity = velocity;
 		mRoot->translate(QVector3D(0, mVerticalVelocity, 0));
 		updatePosition();
 
 		// reset jump count since we're on a surface
-		mJumpCount = 0;
+		if (direction == 4) mJumpCount = 0;
 
 		if (mVerticalVelocity < 0) {
 			mVerticalVelocity = 0;

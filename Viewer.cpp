@@ -313,7 +313,7 @@ void Viewer::updatePositions() {
 
     if (mForwardFlag) {
         if (mPlayer->walkForward(&velocity)) {
-            mCameraTransformation.translate(0,0,-velocity);
+            mCameraTransformation.translate(0,0,velocity);
         }
     } else if (mBackwardFlag) {
         if (mPlayer->walkBackward(&velocity)) {
@@ -323,7 +323,7 @@ void Viewer::updatePositions() {
 
     if (mLeftFlag) {
         if (mPlayer->strafeLeft(&velocity)) {
-            mCameraTransformation.translate(-velocity,0,0);
+            mCameraTransformation.translate(velocity,0,0);
         }
     } else if (mRightFlag) {
         if (mPlayer->strafeRight(&velocity)) {
