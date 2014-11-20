@@ -10,7 +10,7 @@ Primitive::~Primitive()
 
 void Primitive::setBoundaries(QMatrix4x4 transformMatrix) {}
 
-bool Primitive::faceIntersectsBox(QVector4D p1, QVector4D p2, double* diff, int direction) {
+bool Primitive::faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocity, int direction) {
 	return false;
 }
 
@@ -30,76 +30,88 @@ void Block::setBoundaries(QMatrix4x4 transformMatrix) {
 	mVertex2 = transformMatrix * mVertex2;
 }
 
-bool Block::faceIntersectsBox(QVector4D p1, QVector4D p2, double* diff, int direction) {
-	// determines the coordinate of the face that it should directly be colliding with
-	switch(direction) {
-		case 0: { //collide with front face
-			*diff = p2.z() - mVertex1.z();
+
+
+
+
+bool Block::faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocity, int direction) {
+	switch (direction) {
+		case 0:
+			return intersectsFront(p1, p2, velocity);
 			break;
-		}
-		case 1: { //collide with back face
-			*diff = p1.z() - mVertex2.z();
+		case 1:
 			break;
-		}
-		case 2: { //colide with right face
-			*diff = p1.x() - mVertex2.x();
+		case 2:
 			break;
-		}
-		case 3: { //collide with left face
-			*diff = p1.x() - mVertex1.x();
+		case 3:
 			break;
-		}
-		case 4: { //collide with top/bottom
-			*diff = p1.y() - mVertex2.y();
+		case 4:
+			return intersectsTop(p1, p2, velocity);
+			break;  
+		default:
 			break;
-		}
-		default: {
-			*diff = 0;
-			break;
-		}
 	}
-//http://techny.tumblr.com/post/42125198333/3d-collision-detection-and-resolution-using-sweeping
-	if ((betweenLeftRight(p1.x(), mVertex1.x(), mVertex2.x()) || 
+
+	return false;
+}
+
+
+
+bool Block::intersectsFront(QVector4D p1, QVector4D p2, double* velocity) {
+	double z = fmin(p1.z(), p2.z());
+
+
+	if (z >= mVertex1.z() && (z + (*velocity)) <= mVertex1.z() &&
+		(betweenLeftRight(p1.x(), mVertex1.x(), mVertex2.x()) || 
 			betweenLeftRight(p2.x(), mVertex1.x(), mVertex2.x())) &&
 		(betweenTopBottom(p1.y(), mVertex2.y(), mVertex1.y()) ||
-			betweenTopBottom(p2.y(), mVertex2.y(), mVertex1.y())) &&
+			betweenTopBottom(p2.y(), mVertex2.y(), mVertex1.y()))) {
+		double ratio = (mVertex1.z() - z)/(*velocity);
+		*velocity = *velocity * ratio;
+		return true;
+	}
+}
+
+bool Block::intersectsTop(QVector4D p1, QVector4D p2, double* velocity) {
+	// see for inspiration on using velocity:
+	// http://techny.tumblr.com/post/42125198333/3d-collision-detection-and-resolution-using-sweeping
+	double y = fmin(p1.y(), p2.y());
+
+	if (y >= mVertex2.y() && (y + (*velocity)) <= mVertex2.y() &&
+		(betweenLeftRight(p1.x(), mVertex1.x(), mVertex2.x()) || 
+			betweenLeftRight(p2.x(), mVertex1.x(), mVertex2.x())) &&
 		(betweenFrontBack(p1.z(), mVertex1.z(), mVertex2.z()) ||
 			betweenFrontBack(p2.z(), mVertex1.z(), mVertex2.z()))) {
+		// collision detected
+		double ratio = (mVertex2.y() - y)/(*velocity);
+		*velocity = *velocity * ratio;
 		return true;
 	}
 
 	return false;
 }
 
-bool Block::betweenLeftRight(double x, double left, double right) {
-	// std::cout << "test left right" << std::endl;
-	if (x <= left) return false;
-	// std::cout << "pass left" << std::sendl;
-	if (x >= right) return false;
-	// std::cout << "pass right" << std::endl;
 
+
+bool Block::betweenLeftRight(double x, double left, double right) {
+	if (x <= left) return false;
+	if (x >= right) return false;
 	return true;
 }
 
 bool Block::betweenTopBottom(double y, double top, double bottom) {
-	// std::cout << "test top botstom - y: " << y << "  top:" << top << "  bottom: " << bottom << std::endl;
 	if (y >= top) return false;
-	// std::cout << "pass top" << std::endl;
 	if (y <= bottom) return false;
-	// std::cout << "pass bottom" << std::endl;
-
 	return true;
 }
 
 bool Block::betweenFrontBack(double z, double front, double back) {
-	// std::cout << "test front back - z: " << z << "  front: " << front << "  back: " << back << std::endl;
 	if (z >= front) return false;
-	// std::cout << "pass front" << std::endl;
 	if (z <= back) return false;
-	// std::cout << "pass back" << std::endl;
-
 	return true;
 }
+
+
 
 
 
@@ -113,7 +125,7 @@ void Sphere::walk_gl(QMatrix4x4 transformMatrix) const {
 void Sphere::setBoundaries(QMatrix4x4 transformMatrix) {
 }
 
-bool Sphere::faceIntersectsBox(QVector4D p1, QVector4D p2, double* diff, int direction) {
+bool Sphere::faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocity, int direction) {
 	return false;
 }
 

@@ -22,10 +22,10 @@ public:
 
 	// movement functions
 	void rotateY(float amount);
-	bool walkForward();
-	bool walkBackward();
-	bool strafeLeft();
-	bool strafeRight();
+	bool walkForward(double* velocity);
+	bool walkBackward(double* velocity);
+	bool strafeLeft(double* velocity);
+	bool strafeRight(double* velocity);
 	void jump();
 
 	void applyGravity();

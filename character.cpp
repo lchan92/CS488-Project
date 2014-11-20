@@ -59,66 +59,63 @@ void Character::rotateY(float amount) {
 	updatePosition();
 }
 
-bool Character::walkForward() {
-	double diff;
+bool Character::walkForward(double* velocity) {
+	*velocity = -1;
 
-	QVector4D farBottomLeft = QVector4D(mVertex1.x(), mVertex1.y(), mVertex2.z(), 1);
-	QVector4D farTopRight = mVertex2;
-
-	if (!mMapRoot->faceIntersectsBox(farBottomLeft, farTopRight, &diff, 0)) {
-		mRoot->translate(QVector3D(0,0,-1));
+	if (mMapRoot->faceIntersectsBox(mVertex1, mVertex2, velocity, 0)) {
+		mRoot->translate(QVector3D(0,0,*velocity));
 		updatePosition();
 
 		return true;
 	}
 
+	mRoot->translate(QVector3D(0,0,*velocity));
+	updatePosition();
+
 	return false;
 }
 
-bool Character::walkBackward() {
+bool Character::walkBackward(double* velocity) {
 	double diff;
 
-	QVector4D nearBottomLeft = mVertex1;
-	QVector4D nearTopRight = QVector4D(mVertex2.x(), mVertex2.y(), mVertex1.z(), 1);
-
-	if (!mMapRoot->faceIntersectsBox(nearBottomLeft, nearTopRight, &diff, 1)) {
+	// if (!mMapRoot->faceIntersectsBox(nearBottomLeft, nearTopRight, &diff)) {
 		mRoot->translate(QVector3D(0,0,1));
 		updatePosition();
 
 		return true;
-	}
+	// }
 
 	return false;
 }
 
-bool Character::strafeLeft() {
+bool Character::strafeLeft(double* velocity) {
 	double diff;
 
 	QVector4D nearBottomRight = QVector4D(mVertex2.x(), mVertex1.y(), mVertex1.z(), 1);
 	QVector4D farTopRight = mVertex2;
 
-	if (!mMapRoot->faceIntersectsBox(nearBottomRight, farTopRight, &diff, 2)) {
+	// if (!mMapRoot->faceIntersectsBox(nearBottomRight, farTopRight, &diff)) {
 		mRoot->translate(QVector3D(-1,0,0));
 		updatePosition();
 
 		return true;
-	}
+	// }
 
 	return false;
 }
 
-bool Character::strafeRight() {
+bool Character::strafeRight(double* velocity) {
 	double diff;
 
 	QVector4D nearBottomLeft = mVertex1;
 	QVector4D farTopLeft = QVector4D(mVertex1.x(), mVertex2.y(), mVertex2.z(), 1);
 
-	if (!mMapRoot->faceIntersectsBox(nearBottomLeft, farTopLeft, &diff, 3)) {
+	// if (!mMapRoot->faceIntersectsBox(nearBottomLeft, farTopLeft, &diff)) {
 		mRoot->translate(QVector3D(1,0,0));
 		updatePosition();
 
 		return true;
-	}
+	// }
 	return false;
 }
 
@@ -130,19 +127,20 @@ void Character::jump() {
 }
 
 void Character::applyGravity() {
-	double diff;
+	mVerticalVelocity += GRAVITY;
+	
+	if (mVerticalVelocity < -3.0f) {
+		mVerticalVelocity = -3.0f;
+	}
 
-	QVector4D nearBottomLeft = mVertex1;
-	QVector4D farBottomRight = QVector4D(mVertex2.x(), mVertex1.y(), mVertex2.z(), 1);
+	double velocity;
+	velocity = mVerticalVelocity;
 
-	// bottom, top, front, back, left, right
-	if (mMapRoot->faceIntersectsBox(nearBottomLeft, farBottomRight, &diff, 4)) {
+	if (mMapRoot->faceIntersectsBox(mVertex1, mVertex2, &velocity, 4))	{
 		// reset position of character to not get stuck in physics when landing
-		if (diff > -2) {
-		mRoot->translate(QVector3D(0, -diff, 0));
+		mVerticalVelocity = velocity;
+		mRoot->translate(QVector3D(0, mVerticalVelocity, 0));
 		updatePosition();
-
-		}
 
 		// reset jump count since we're on a surface
 		mJumpCount = 0;
@@ -151,15 +149,9 @@ void Character::applyGravity() {
 			mVerticalVelocity = 0;
 		}
 	} else {
-		mVerticalVelocity += GRAVITY;
-		
-		if (mVerticalVelocity < -3.0f) {
-			mVerticalVelocity = -3.0f;
-		}
+		mRoot->translate(QVector3D(0, mVerticalVelocity, 0));
+		updatePosition();
 	}
-
-	mRoot->translate(QVector3D(0, mVerticalVelocity, 0));
-	updatePosition();
 }
 
 
