@@ -31,8 +31,6 @@ public:
 	void applyGravity();
 
 private:
-	bool detectCollisions();
-
 	// constants
 	int MAX_JUMPS;
 	float GRAVITY;

@@ -10,7 +10,7 @@ Primitive::~Primitive()
 
 void Primitive::setBoundaries(QMatrix4x4 transformMatrix) {}
 
-bool Primitive::faceIntersectsBox(QVector4D p1, QVector4D p2) {
+bool Primitive::faceIntersectsBox(QVector4D p1, QVector4D p2, double* diff, int direction) {
 	return false;
 }
 
@@ -23,68 +23,83 @@ void Block::walk_gl(QMatrix4x4 transformMatrix) const {
 }
 
 void Block::setBoundaries(QMatrix4x4 transformMatrix) {
-	mVertex1 = QVector4D(0, 0, 0, 1);
-	mVertex2 = QVector4D(1, 1, 1, 1);
+	mVertex1 = QVector4D(0, 0, 1, 1);
+	mVertex2 = QVector4D(1, 1, 0, 1);
 
 	mVertex1 = transformMatrix * mVertex1;
 	mVertex2 = transformMatrix * mVertex2;
 }
 
-bool Block::faceIntersectsBox(QVector4D p1, QVector4D p2) {
-	// std::cout << "mVertex1: " << mVertex1.x() << "," << mVertex1.y() << "," << mVertex1.z() << std::endl;
-	// std::cout << "mVertex2: " << mVertex2.x() << "," << mVertex2.y() << "," << mVertex2.z() << std::endl;
-
-
-	QVector4D nearBottomLeft = mVertex1;
-	QVector4D nearBottomRight = QVector4D(mVertex2.x(), mVertex1.y(), mVertex1.z(), 1);
-	QVector4D nearTopRight = QVector4D(mVertex2.x(), mVertex2.y(), mVertex1.z(), 1);
-	QVector4D nearTopLeft = QVector4D(mVertex1.x(), mVertex2.y(), mVertex1.z(), 1);
-
-	QVector4D farBottomLeft = QVector4D(mVertex1.x(), mVertex1.y(), mVertex2.z(), 1);
-	QVector4D farBottomRight = QVector4D(mVertex2.x(), mVertex1.y(), mVertex2.z(), 1);
-	QVector4D farTopRight = mVertex2;
-	QVector4D farTopLeft = QVector4D(mVertex1.x(), mVertex2.y(), mVertex2.z(), 1);
-
-	// bottom, front, left, right, back, top
-	if (intersectsFace(p1, p2, nearBottomLeft, farBottomRight) ||
-		intersectsFace(p1, p2, nearBottomLeft, nearTopRight) ||
-		intersectsFace(p1, p2, farBottomLeft, nearTopLeft) ||
-		intersectsFace(p1, p2, farBottomRight, nearTopRight) ||
-		intersectsFace(p1, p2, farBottomLeft, farTopRight) ||
-		intersectsFace(p1, p2, nearTopLeft, farTopRight)) {
+bool Block::faceIntersectsBox(QVector4D p1, QVector4D p2, double* diff, int direction) {
+	// determines the coordinate of the face that it should directly be colliding with
+	switch(direction) {
+		case 0: { //collide with front face
+			*diff = p2.z() - mVertex1.z();
+			break;
+		}
+		case 1: { //collide with back face
+			*diff = p1.z() - mVertex2.z();
+			break;
+		}
+		case 2: { //colide with right face
+			*diff = p1.x() - mVertex2.x();
+			break;
+		}
+		case 3: { //collide with left face
+			*diff = p1.x() - mVertex1.x();
+			break;
+		}
+		case 4: { //collide with top/bottom
+			*diff = p1.y() - mVertex2.y();
+			break;
+		}
+		default: {
+			*diff = 0;
+			break;
+		}
+	}
+//http://techny.tumblr.com/post/42125198333/3d-collision-detection-and-resolution-using-sweeping
+	if ((betweenLeftRight(p1.x(), mVertex1.x(), mVertex2.x()) || 
+			betweenLeftRight(p2.x(), mVertex1.x(), mVertex2.x())) &&
+		(betweenTopBottom(p1.y(), mVertex2.y(), mVertex1.y()) ||
+			betweenTopBottom(p2.y(), mVertex2.y(), mVertex1.y())) &&
+		(betweenFrontBack(p1.z(), mVertex1.z(), mVertex2.z()) ||
+			betweenFrontBack(p2.z(), mVertex1.z(), mVertex2.z()))) {
 		return true;
 	}
 
 	return false;
 }
 
-bool Block::intersectsFace(QVector4D a1, QVector4D a2, QVector4D b1, QVector4D b2) {
-	//see: http://gamemath.com/2011/09/detecting-whether-two-boxes-overlap/
-	// std::cout << "starting test" << std::endl;
-	// std::cout << "a1: " << a1.x() << "," << a1.y() << "," << a1.z() << std::endl;
-	// std::cout << "a2: " << a2.x() << "," << a2.y() << "," << a2.z() << std::endl;
-	// std::cout << "b1: " << b1.x() << "," << b1.y() << "," << b1.z() << std::endl;
-	// std::cout << "b2: " << b2.x() << "," << b2.y() << "," << b2.z() << std::endl;
-
-
-	if (a2.x() < b1.x()) return false; // too far to left
-	// std::cout << "passed left test" << std::endl;
-	if (a1.x() > b2.x()) return false; // too far to right
-	// std::cout << "passed right test" << std::endl;
-
-	if (a2.y() < b1.y()) return false; // too far down
-	// std::cout << "passed down test" << std::endl;
-	if (a1.y() > b2.y()) return false; // too far up
-	// std::cout << "passed up test" << std::endl;
-
-	if (a1.z() < b1.z()) return false; // too far back
-	// std::cout << "passed back test" << std::endl;
-	if (a2.z() > b2.z()) return false; // too far forward
-	// std::cout << "passed forward test" << std::endl;
+bool Block::betweenLeftRight(double x, double left, double right) {
+	// std::cout << "test left right" << std::endl;
+	if (x <= left) return false;
+	// std::cout << "pass left" << std::sendl;
+	if (x >= right) return false;
+	// std::cout << "pass right" << std::endl;
 
 	return true;
 }
 
+bool Block::betweenTopBottom(double y, double top, double bottom) {
+	// std::cout << "test top botstom - y: " << y << "  top:" << top << "  bottom: " << bottom << std::endl;
+	if (y >= top) return false;
+	// std::cout << "pass top" << std::endl;
+	if (y <= bottom) return false;
+	// std::cout << "pass bottom" << std::endl;
+
+	return true;
+}
+
+bool Block::betweenFrontBack(double z, double front, double back) {
+	// std::cout << "test front back - z: " << z << "  front: " << front << "  back: " << back << std::endl;
+	if (z >= front) return false;
+	// std::cout << "pass front" << std::endl;
+	if (z <= back) return false;
+	// std::cout << "pass back" << std::endl;
+
+	return true;
+}
 
 
 
@@ -98,7 +113,7 @@ void Sphere::walk_gl(QMatrix4x4 transformMatrix) const {
 void Sphere::setBoundaries(QMatrix4x4 transformMatrix) {
 }
 
-bool Sphere::faceIntersectsBox(QVector4D p1, QVector4D p2) {
+bool Sphere::faceIntersectsBox(QVector4D p1, QVector4D p2, double* diff, int direction) {
 	return false;
 }
 

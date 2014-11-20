@@ -30,13 +30,13 @@ void SceneNode::setBoundaries(QMatrix4x4 transformMatrix) const
     }
 }
 
-bool SceneNode::faceIntersectsBox(QVector4D p1, QVector4D p2) 
+bool SceneNode::faceIntersectsBox(QVector4D p1, QVector4D p2, double* diff, int direction) 
 {
     bool result = false;
 
     std::list<SceneNode*>::const_iterator it;
     for (it = m_children.begin(); it != m_children.end(); it++) {
-        result = result || (*it)->faceIntersectsBox(p1, p2);
+        result = (*it)->faceIntersectsBox(p1, p2, diff, direction) || result;
     }
 
     return result;
@@ -116,13 +116,13 @@ void JointNode::setBoundaries(QMatrix4x4 transformMatrix) const
     }
 }
 
-bool JointNode::faceIntersectsBox(QVector4D p1, QVector4D p2) 
+bool JointNode::faceIntersectsBox(QVector4D p1, QVector4D p2, double* diff, int direction) 
 {
     bool result = false;
 
     std::list<SceneNode*>::const_iterator it;
     for (it = m_children.begin(); it != m_children.end(); it++) {
-        result = result || (*it)->faceIntersectsBox(p1, p2);
+        result = (*it)->faceIntersectsBox(p1, p2, diff, direction) || result;
     }
 
     return result;
@@ -182,7 +182,7 @@ void GeometryNode::setBoundaries(QMatrix4x4 transformMatrix) const
   m_primitive->setBoundaries(transformMatrix * m_trans);
 }
 
-bool GeometryNode::faceIntersectsBox(QVector4D p1, QVector4D p2) 
+bool GeometryNode::faceIntersectsBox(QVector4D p1, QVector4D p2, double* diff, int direction) 
 {
-    return m_primitive->faceIntersectsBox(p1, p2);
+    return m_primitive->faceIntersectsBox(p1, p2, diff, direction);
 }
