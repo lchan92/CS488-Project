@@ -11,6 +11,8 @@ public:
 	virtual void setBoundaries(QMatrix4x4 transformMatrix);
 
 	virtual bool faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocity, int direction);
+
+    static double EPSILON;
 };
 
 class Block : public Primitive {
@@ -20,6 +22,8 @@ public:
 	virtual void setBoundaries(QMatrix4x4 transformMatrix);
 
 	virtual bool faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocity, int direction);
+
+
 private:
 	bool intersectsFront(QVector4D p1, QVector4D p2, double* velocity);
 	bool intersectsBack(QVector4D p1, QVector4D p2, double* velocity);

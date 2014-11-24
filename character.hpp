@@ -22,13 +22,13 @@ public:
 
 	// movement functions
 	void rotateY(float amount);
-	bool walkForward(double* velocity);
-	bool walkBackward(double* velocity);
-	bool strafeLeft(double* velocity);
-	bool strafeRight(double* velocity);
+	void walkForward(double*  velocity);
+	void walkBackward(double*  velocity);
+	void strafeLeft(double*  velocity);
+	void strafeRight(double*  velocity);
 	void jump();
 
-	void applyGravity();
+	void applyGravity(double*  velocity);
 
 private:
 	// constants

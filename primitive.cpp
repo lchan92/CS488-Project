@@ -36,9 +36,10 @@ void Block::setBoundaries(QMatrix4x4 transformMatrix) {
 
 bool Block::faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocity, int direction) {
 	switch (direction) {
-		case 0:
+		case 0: {
 			return intersectsFront(p1, p2, velocity);
 			break;
+		}
 		case 1:
 			return intersectsBack(p1, p2, velocity);
 			break;
@@ -61,7 +62,23 @@ bool Block::faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocity, int 
 	return false;
 }
 
+bool Block::betweenLeftRight(double x, double left, double right) {
+	if (x <= left) return false;
+	if (x >= right) return false;
+	return true;
+}
 
+bool Block::betweenTopBottom(double y, double top, double bottom) {
+	if (y >= top) return false;
+	if (y <= bottom) return false;
+	return true;
+}
+
+bool Block::betweenFrontBack(double z, double front, double back) {
+	if (z >= front) return false;
+	if (z <= back) return false;
+	return true;
+}
 
 bool Block::intersectsFront(QVector4D p1, QVector4D p2, double* velocity) {
 	double z = fmin(p1.z(), p2.z());
@@ -75,6 +92,8 @@ bool Block::intersectsFront(QVector4D p1, QVector4D p2, double* velocity) {
 		*velocity = *velocity * ratio;
 		return true;
 	}
+
+	return false;
 }
 
 bool Block::intersectsBack(QVector4D p1, QVector4D p2, double* velocity) {
@@ -89,6 +108,8 @@ bool Block::intersectsBack(QVector4D p1, QVector4D p2, double* velocity) {
 		*velocity = *velocity * ratio;
 		return true;
 	}
+
+	return false;
 }
 
 bool Block::intersectsRight(QVector4D p1, QVector4D p2, double* velocity) {
@@ -103,6 +124,8 @@ bool Block::intersectsRight(QVector4D p1, QVector4D p2, double* velocity) {
 		*velocity = *velocity * ratio;
 		return true;
 	}
+
+	return false;
 }
 
 bool Block::intersectsLeft(QVector4D p1, QVector4D p2, double* velocity) {
@@ -117,6 +140,8 @@ bool Block::intersectsLeft(QVector4D p1, QVector4D p2, double* velocity) {
 		*velocity = *velocity * ratio;
 		return true;
 	}
+
+	return false;
 }
 
 bool Block::intersectsTop(QVector4D p1, QVector4D p2, double* velocity) {
@@ -156,23 +181,6 @@ bool Block::intersectsBottom(QVector4D p1, QVector4D p2, double* velocity) {
 
 
 
-bool Block::betweenLeftRight(double x, double left, double right) {
-	if (x <= left) return false;
-	if (x >= right) return false;
-	return true;
-}
-
-bool Block::betweenTopBottom(double y, double top, double bottom) {
-	if (y >= top) return false;
-	if (y <= bottom) return false;
-	return true;
-}
-
-bool Block::betweenFrontBack(double z, double front, double back) {
-	if (z >= front) return false;
-	if (z <= back) return false;
-	return true;
-}
 
 
 

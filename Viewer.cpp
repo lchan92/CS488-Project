@@ -222,8 +222,8 @@ void Viewer::mouseMoveEvent(QMouseEvent *event) {
         return;
 
     float deltaX = mouseMove.x();
-    mPlayer->rotateY(-deltaX/10);
-    mCameraTransformation.rotate(-deltaX/10, 0, 1, 0);
+    // mPlayer->rotateY(-deltaX/10);
+    // mCameraTransformation.rotate(-deltaX/10, 0, 1, 0);
 
     cursor().setPos(center);
 }
@@ -309,26 +309,23 @@ void Viewer::setMapRoot(SceneNode* node) {
 void Viewer::updatePositions() {
     double velocity;
 
-    mPlayer->applyGravity();
+    mPlayer->applyGravity(&velocity);
+    mCameraTransformation.translate(0,velocity,0);
 
     if (mForwardFlag) {
-        if (mPlayer->walkForward(&velocity)) {
-            mCameraTransformation.translate(0,0,velocity);
-        }
+        mPlayer->walkForward(&velocity);
+        mCameraTransformation.translate(0,0,velocity);
     } else if (mBackwardFlag) {
-        if (mPlayer->walkBackward(&velocity)) {
-            mCameraTransformation.translate(0,0,velocity);
-        }
+        mPlayer->walkBackward(&velocity);
+        mCameraTransformation.translate(0,0,velocity);
     }
 
     if (mLeftFlag) {
-        if (mPlayer->strafeLeft(&velocity)) {
-            mCameraTransformation.translate(velocity,0,0);
-        }
+        mPlayer->strafeLeft(&velocity);
+        mCameraTransformation.translate(velocity,0,0);
     } else if (mRightFlag) {
-        if (mPlayer->strafeRight(&velocity)) {
-            mCameraTransformation.translate(velocity,0,0);
-        }
+        mPlayer->strafeRight(&velocity);
+        mCameraTransformation.translate(velocity,0,0);    
     }
 
     update();
