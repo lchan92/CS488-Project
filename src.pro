@@ -19,6 +19,7 @@ HEADERS += algebra.hpp \
            Viewer.hpp \
            character.hpp \
            obstacle_map.hpp \
+           sounds.hpp \
            scene_lua.hpp \
            lua488.hpp
 SOURCES += algebra.cpp \
@@ -29,5 +30,6 @@ SOURCES += algebra.cpp \
            AppWindow.cpp \ 
            Viewer.cpp \
            character.cpp \
+           sounds.cpp \
            obstacle_map.cpp \
            scene_lua.cpp

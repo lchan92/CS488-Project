@@ -15,7 +15,6 @@ Character::Character() {
 Character::~Character() {}
 
 
-
 void Character::setRoot(SceneNode* root) {
 	mRoot = root;
 	updatePosition();

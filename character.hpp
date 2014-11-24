@@ -31,6 +31,8 @@ public:
 	void applyGravity(double*  velocity);
 
 private:
+	void initSDL();
+
 	// constants
 	int MAX_JUMPS;
 	float GRAVITY;

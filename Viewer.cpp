@@ -63,7 +63,6 @@ void Viewer::initializeGL() {
     glShadeModel(GL_SMOOTH);
     glClearColor( 0.4, 0.4, 0.4, 0.0 );
     glEnable(GL_DEPTH_TEST);
-    // glEnable(GL_CULL_FACE);
 
     if (!mProgram.addShaderFromSourceFile(QGLShader::Vertex, "shader.vert")) {
         std::cerr << "Cannot load vertex shader." << std::endl;
@@ -88,8 +87,14 @@ void Viewer::initializeGL() {
     mCubeBufferObject.create();
     mCubeBufferObject.setUsagePattern(QOpenGLBuffer::StaticDraw);
 
+    mCubeNormalBufferObject.create();
+    mCubeNormalBufferObject.setUsagePattern(QOpenGLBuffer::StaticDraw);
+
     mSphereBufferObject.create();
     mSphereBufferObject.setUsagePattern(QOpenGLBuffer::StaticDraw);
+
+    mSphereNormalBufferObject.create();
+    mSphereNormalBufferObject.setUsagePattern(QOpenGLBuffer::StaticDraw);
 #else 
     /*
      * if qt version is less than 5.1, use the following commented code
@@ -113,8 +118,14 @@ void Viewer::initializeGL() {
     mCubeBufferObject.create();
     mCubeBufferObject.setUsagePattern(QGLBuffer::StaticDraw);
 
+    mCubeNormalBufferObject.create();
+    mCubeNormalBufferObject.setUsagePattern(QGLBuffer::StaticDraw);
+
     mSphereBufferObject.create();
     mSphereBufferObject.setUsagePattern(QGLBuffer::StaticDraw);
+
+    mSphereNormalBufferObject.create();
+    mSphereNormalBufferObject.setUsagePattern(QGLBuffer::StaticDraw);
 #endif
 
     if (!mCubeBufferObject.bind()) {
@@ -122,6 +133,20 @@ void Viewer::initializeGL() {
         return;
     }
     mCubeBufferObject.allocate(&mCubeVerts[0], 36 * 3 * sizeof(float));
+
+    if (!mCubeNormalBufferObject.bind()) {
+        std::cerr << "could not bind cube normal buffer to the context." << std::endl;
+        return;
+    }
+    mCubeNormalBufferObject.allocate(&mCubeNormals[0], 36 * 3 * sizeof(float));
+
+
+
+    if (!mSphereNormalBufferObject.bind()) {
+        std::cerr << "could not bind sphere vertex buffer to the context." << std::endl;
+        return;
+    }
+    mSphereNormalBufferObject.allocate(&mSphereNormals[0], 1600 * 6 * sizeof(float));
 
     if (!mSphereBufferObject.bind()) {
         std::cerr << "could not bind sphere vertex buffer to the context." << std::endl;
@@ -131,17 +156,10 @@ void Viewer::initializeGL() {
 
 
 
-    mProgram.bind();
-    mProgram.enableAttributeArray("vert");
-    mProgram.setAttributeBuffer("vert", GL_FLOAT, 0, 3);
-
-
     // variables to pass to shader
-    mMvpMatrixLocation = mProgram.uniformLocation("mvpMatrix");
-    mMvpNormalMatrixLocation = mProgram.uniformLocation("mvpNormalMatrix");
-    mEyeMatrixLocation = mProgram.uniformLocation("eyeMatrix");
-
-    mColorLocation = mProgram.uniformLocation("frag_color");
+    mMvMatrixLocation = mProgram.uniformLocation("MV");
+    mNormalMatrixLocation = mProgram.uniformLocation("N");
+    mMvpMatrixLocation = mProgram.uniformLocation("MVP");
 
     mDiffuseLocation = mProgram.uniformLocation("Kd");
     mSpecularLocation = mProgram.uniformLocation("Ks");
@@ -173,21 +191,6 @@ void Viewer::resizeGL(int width, int height) {
     glViewport(0, 0, width, height);
 }
 
-QMatrix4x4 Viewer::getCameraMatrix() {
-    QMatrix4x4 vMatrix;
-    QVector3D modelPosition = mPlayer->getPosition();
-
-    QMatrix4x4 cameraTransformation = mCameraTransformation;
-    cameraTransformation.translate(0,10,20);
-
-    QVector3D cameraPosition = (cameraTransformation * QVector4D(0,0,0,1)).toVector3D();
-    QVector3D cameraUpDirection = QVector3D(0, 1, 0);
-
-    vMatrix.lookAt(cameraPosition, modelPosition, cameraUpDirection);
-
-    return mPerspMatrix * vMatrix * mTransformMatrix;
-}
-
 void Viewer::translateWorld(float x, float y, float z) {
     mTransformMatrix.translate(x, y, z);
 }
@@ -216,21 +219,20 @@ void Viewer::mouseReleaseEvent(QMouseEvent *event) {
 }
 
 void Viewer::mouseMoveEvent(QMouseEvent *event) {
-    QPoint center = mapToGlobal(rect().center());
-    QPoint mouseMove = (event->globalPos() - center);
-    if (mouseMove.isNull())
-        return;
+    // QPoint center = mapToGlobal(rect().center());
+    // QPoint mouseMove = (event->globalPos() - center);
+    // if (mouseMove.isNull())
+    //     return;
 
-    float deltaX = mouseMove.x();
+    // float deltaX = mouseMove.x();
     // mPlayer->rotateY(-deltaX/10);
     // mCameraTransformation.rotate(-deltaX/10, 0, 1, 0);
 
-    cursor().setPos(center);
+    // cursor().setPos(center);
 }
 
 void Viewer::keyPressEvent(QKeyEvent *event) {
     // std::cout << "key: " << event->key() << " val: " << qPrintable(event->text()) << std::endl;
-
     switch(event->key()) {
         case 87: {
             //w
@@ -377,6 +379,22 @@ void Viewer::cubeSetup() {
     for (int i = 0; i < 36*3; i++) {
         mCubeVerts.push_back(cubeData[i]);
     }
+
+    QVector3D normals[6];
+    normals[0] = QVector3D(0,0,-1);
+    normals[1] = QVector3D(0,-1,0);
+    normals[2] = QVector3D(-1,0,0);
+    normals[3] = QVector3D(1,0,0);
+    normals[4] = QVector3D(0,1,0);
+    normals[5] = QVector3D(0,0,1);
+
+    for (int i = 0; i < 6; i++) {
+        for (int j = 0; j < 6; j++) {
+            mCubeNormals.push_back(normals[i].x());
+            mCubeNormals.push_back(normals[i].y());
+            mCubeNormals.push_back(normals[i].z());
+        }
+    }
 }
 
 void Viewer::sphereSetup() {
@@ -405,27 +423,62 @@ void Viewer::sphereSetup() {
             mSphereVerts.push_back(z1);      //Z
         }
     }
+
+    // calc normals
+    for (int i = 0; i < 3200*3; i++) {
+        mSphereNormals.push_back(mSphereVerts[i]);
+    }
 }
 
+QMatrix4x4 Viewer::getCameraMatrix() {
+    QMatrix4x4 vMatrix;
+    QVector3D modelPosition = mPlayer->getPosition();
 
+    QMatrix4x4 cameraTransformation = mCameraTransformation;
+    cameraTransformation.translate(0,10,20);
+
+    QVector3D cameraPosition = (cameraTransformation * QVector4D(0,0,0,1)).toVector3D();
+    QVector3D cameraUpDirection = QVector3D(0, 1, 0);
+
+    vMatrix.lookAt(cameraPosition, modelPosition, cameraUpDirection);
+
+    return mPerspMatrix * vMatrix * mTransformMatrix;
+    // return vMatrix * mTransformMatrix;
+}
 
 void Viewer::draw_cube(QMatrix4x4 transformMatrix) {
-    mCubeBufferObject.bind();
-
     mProgram.bind();
-    mProgram.enableAttributeArray("vert");
-    mProgram.setAttributeBuffer("vert", GL_FLOAT, 0, 3);
+
+    mCubeBufferObject.bind();
+    mProgram.enableAttributeArray("vertexPosition");
+    mProgram.setAttributeBuffer("vertexPosition", GL_FLOAT, 0, 3);
+
+    mCubeNormalBufferObject.bind();
+    mProgram.enableAttributeArray("vertexNormal");
+    mProgram.setAttributeBuffer("vertexNormal", GL_FLOAT, 0, 3);
+
+    QMatrix4x4 modelViewMatrix = mTransformMatrix * transformMatrix;
+    mProgram.setUniformValue(mMvMatrixLocation, modelViewMatrix);
+    mProgram.setUniformValue(mNormalMatrixLocation, modelViewMatrix.normalMatrix());
     mProgram.setUniformValue(mMvpMatrixLocation, getCameraMatrix() * transformMatrix);
 
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 
 void Viewer::draw_sphere(QMatrix4x4 transformMatrix) {
-    mSphereBufferObject.bind();
-
     mProgram.bind();
-    mProgram.enableAttributeArray("vert");
-    mProgram.setAttributeBuffer("vert", GL_FLOAT, 0, 3);
+
+    mSphereBufferObject.bind();
+    mProgram.enableAttributeArray("vertexPosition");
+    mProgram.setAttributeBuffer("vertexPosition", GL_FLOAT, 0, 3);
+
+    mSphereNormalBufferObject.bind();
+    mProgram.enableAttributeArray("vertexNormal");
+    mProgram.setAttributeBuffer("vertexNormal", GL_FLOAT, 0, 3);
+
+    QMatrix4x4 modelViewMatrix = mTransformMatrix * transformMatrix;
+    mProgram.setUniformValue(mMvMatrixLocation, modelViewMatrix);
+    mProgram.setUniformValue(mNormalMatrixLocation, modelViewMatrix.normalMatrix());
     mProgram.setUniformValue(mMvpMatrixLocation, getCameraMatrix() * transformMatrix);
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 3200);
@@ -437,8 +490,8 @@ void Viewer::setMaterial(const Colour& kd, const Colour& ks, double shininess, Q
     mProgram.setUniformValue(mSpecularLocation, QVector3D(ks.R(), ks.G(), ks.B()));
     mProgram.setUniformValue(mShininessLocation, (float) shininess);
 
-    QMatrix4x4 mvpMatrix = getCameraMatrix() * transformMatrix;
-    mProgram.setUniformValue(mMvpMatrixLocation, mvpMatrix);
-    mProgram.setUniformValue(mMvpNormalMatrixLocation, mvpMatrix.normalMatrix());
-    mProgram.setUniformValue(mEyeMatrixLocation, getCameraMatrix());
+    // QMatrix4x4 mvpMatrix = getCameraMatrix() * transformMatrix;
+    // mProgram.setUniformValue(mMvpMatrixLocation, mvpMatrix);
+    // mProgram.setUniformValue(mMvpNormalMatrixLocation, mvpMatrix.normalMatrix());
+    // mProgram.setUniformValue(mEyeMatrixLocation, getCameraMatrix());
 }

@@ -74,8 +74,8 @@ private:
     void cubeSetup();
     void sphereSetup();
 
-    std::vector<GLfloat> mCubeVerts;
-    std::vector<GLfloat> mSphereVerts;
+    std::vector<GLfloat> mCubeVerts, mCubeNormals;
+    std::vector<GLfloat> mSphereVerts, mSphereNormals;
 
     Character *mPlayer;
     ObstacleMap *mMap;
@@ -88,19 +88,21 @@ private:
 
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 1, 0))
-    QOpenGLBuffer mCubeBufferObject;
+    QOpenGLBuffer mCubeBufferObject, mCubeNormalBufferObject;
     QOpenGLBuffer mSphereBufferObject;
     QOpenGLVertexArrayObject mVertexArrayObject;
 #else 
-    QGLBuffer mCubeBufferObject;
-    QGLBuffer mSphereBufferObject;
+    QGLBuffer mCubeBufferObject, mCubeNormalBufferObject;
+    QGLBuffer mSphereBufferObject, mSphereNormalBufferObject;
 #endif
 
 
     int mShadingLocation;
     int mDiffuseLocation, mSpecularLocation, mShininessLocation;
-    int mMvpMatrixLocation, mMvpNormalMatrixLocation, mEyeMatrixLocation;
+    // int mMvpMatrixLocation, mMvpNormalMatrixLocation, mEyeMatrixLocation;
+    int mMvpMatrixLocation, mMvMatrixLocation, mNormalMatrixLocation;
     int mColorLocation;
+
 
     QMatrix4x4 mPerspMatrix;
     QMatrix4x4 mTransformMatrix;
