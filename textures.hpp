@@ -13,8 +13,7 @@ public:
 
 	std::vector<GLuint> mTexIDs;
 private:
-	void loadBMP(const char *imagePath);
-	void loadJPG(const char *imagePath);
+	void loadImage(const char *imagePath, const char *fileType);
 };
 
 #endif
