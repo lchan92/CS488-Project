@@ -17,6 +17,7 @@
 #include "character.hpp"
 #include "obstacle_map.hpp"
 #include "sounds.hpp"
+#include "textures.hpp"
 
 
 class Viewer : public QGLWidget {
@@ -37,8 +38,9 @@ public:
 
     void setModelRoot(SceneNode* node);
     void setMapRoot(SceneNode* node);
-    
+
     static Sounds* mSounds;
+    static Textures* mTextures;
 
 public slots:
     void updatePositions();
@@ -72,7 +74,7 @@ private:
     void cubeSetup();
     void sphereSetup();
 
-    std::vector<GLfloat> mCubeVerts, mCubeNormals;
+    std::vector<GLfloat> mCubeVerts, mCubeNormals, mCubeUVCoords;
     std::vector<GLfloat> mSphereVerts, mSphereNormals;
 
     Character *mPlayer;
@@ -86,11 +88,11 @@ private:
 
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 1, 0))
-    QOpenGLBuffer mCubeBufferObject, mCubeNormalBufferObject;
-    QOpenGLBuffer mSphereBufferObject;
+    QOpenGLBuffer mCubeBufferObject, mCubeNormalBufferObject, mCubeUVBufferObject;
+    QOpenGLBuffer mSphereBufferObject, mSphereNormalBufferObject;
     QOpenGLVertexArrayObject mVertexArrayObject;
 #else 
-    QGLBuffer mCubeBufferObject, mCubeNormalBufferObject;
+    QGLBuffer mCubeBufferObject, mCubeNormalBufferObject, mCubeUVBufferObject;
     QGLBuffer mSphereBufferObject, mSphereNormalBufferObject;
 #endif
 

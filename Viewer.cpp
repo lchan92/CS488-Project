@@ -12,6 +12,7 @@
 
 
 Sounds* Viewer::mSounds = NULL;
+Textures* Viewer::mTextures = NULL;
 
 
 Viewer::Viewer(const QGLFormat& format, QWidget *parent) 
@@ -39,6 +40,7 @@ Viewer::Viewer(const QGLFormat& format, QWidget *parent)
     mPlayer = new Character();
     mMap = new ObstacleMap();
     mSounds = new Sounds();
+    mTextures = new Textures();
 
     // positions for all objects are updated every second
     QTimer *timer = new QTimer(this);
@@ -97,6 +99,9 @@ void Viewer::initializeGL() {
     mCubeNormalBufferObject.create();
     mCubeNormalBufferObject.setUsagePattern(QOpenGLBuffer::StaticDraw);
 
+    mCubeUVBufferObject.create();
+    mCubeUVBufferObject.setUsagePattern(QOpenGLBuffer::StaticDraw);
+
     mSphereBufferObject.create();
     mSphereBufferObject.setUsagePattern(QOpenGLBuffer::StaticDraw);
 
@@ -128,6 +133,9 @@ void Viewer::initializeGL() {
     mCubeNormalBufferObject.create();
     mCubeNormalBufferObject.setUsagePattern(QGLBuffer::StaticDraw);
 
+    mCubeUVBufferObject.create();
+    mCubeUVBufferObject.setUsagePattern(QGLBuffer::StaticDraw);
+
     mSphereBufferObject.create();
     mSphereBufferObject.setUsagePattern(QGLBuffer::StaticDraw);
 
@@ -147,6 +155,12 @@ void Viewer::initializeGL() {
     }
     mCubeNormalBufferObject.allocate(&mCubeNormals[0], 36 * 3 * sizeof(float));
 
+    if (!mCubeUVBufferObject.bind()) {
+        std::cerr << "could not bind cube uv buffer to the context." << std::endl;
+        return;
+    }
+    mCubeUVBufferObject.allocate(&mCubeUVCoords[0], 36 * 2 * sizeof(float));
+
 
 
     if (!mSphereNormalBufferObject.bind()) {
@@ -161,7 +175,7 @@ void Viewer::initializeGL() {
     }
     mSphereBufferObject.allocate(&mSphereVerts[0], 1600 * 6 * sizeof(float));
 
-
+    mTextures->load();
 
     // variables to pass to shader
     mMvMatrixLocation = mProgram.uniformLocation("MV");
@@ -171,6 +185,12 @@ void Viewer::initializeGL() {
     mDiffuseLocation = mProgram.uniformLocation("Kd");
     mSpecularLocation = mProgram.uniformLocation("Ks");
     mShininessLocation = mProgram.uniformLocation("Shininess");
+
+    // TEXTURES
+    int texLocation0 = mProgram.uniformLocation("tex0");
+    int texLocation1 = mProgram.uniformLocation("tex1");
+    mProgram.setUniformValue(texLocation0, 0);
+    mProgram.setUniformValue(texLocation1, 1);
 }
 
 
@@ -347,7 +367,7 @@ void Viewer::updatePositions() {
     } else if (mRightFlag) {
         mPlayer->strafeRight(&velocity);
         mCameraTransformation.translate(velocity,0,0);
-        
+
         if (onSurface) {
             Viewer::mSounds->playFootsteps();
         }
@@ -363,7 +383,7 @@ void Viewer::updatePositions() {
 void Viewer::cubeSetup() {
     float cubeData[] = {
         //  X     Y     Z
-        0.0f, 0.0f, 0.0f, // front face
+        0.0f, 0.0f, 0.0f, // back face
         1.0f, 0.0f, 0.0f,
         1.0f, 1.0f, 0.0f,
         0.0f, 0.0f, 0.0f,
@@ -393,7 +413,7 @@ void Viewer::cubeSetup() {
         0.0f, 1.0f, 0.0f,
         1.0f, 1.0f, 1.0f,
         0.0f, 1.0f, 1.0f,
-        0.0f, 0.0f, 1.0f, // back face
+        0.0f, 0.0f, 1.0f, // front face
         1.0f, 0.0f, 1.0f,
         1.0f, 1.0f, 1.0f,
         0.0f, 0.0f, 1.0f,
@@ -419,6 +439,51 @@ void Viewer::cubeSetup() {
             mCubeNormals.push_back(normals[i].y());
             mCubeNormals.push_back(normals[i].z());
         }
+    }
+
+    //UV values for texture mapping
+    float cubeUVData[] = {
+        // U   //V
+        1.0f, 0.0f, // back face
+        0.0f, 0.0f,
+        0.0f, 1.0f,
+        1.0f, 0.0f,
+        0.0f, 1.0f,
+        1.0f, 1.0f,
+        0.0f, 1.0f, // bottom face
+        1.0f, 1.0f,
+        1.0f, 0.0f,
+        0.0f, 1.0f,
+        1.0f, 0.0f,
+        0.0f, 0.0f,
+        0.0f, 0.0f, // left face
+        1.0f, 0.0f,
+        1.0f, 1.0f,
+        0.0f, 0.0f,
+        1.0f, 1.0f,
+        0.0f, 1.0f,
+        1.0f, 0.0f, // right face
+        0.0f, 0.0f,
+        0.0f, 1.0f,
+        1.0f, 0.0f,
+        0.0f, 1.0f,
+        1.0f, 1.0f,
+        0.0f, 1.0f, // top face
+        1.0f, 1.0f,
+        1.0f, 0.0f,
+        0.0f, 1.0f,
+        1.0f, 0.0f,
+        0.0f, 0.0f,
+        0.0f, 0.0f, // front face
+        1.0f, 0.0f,
+        1.0f, 1.0f,
+        0.0f, 0.0f,
+        1.0f, 1.0f,
+        0.0f, 1.0f,
+    };
+
+    for (int i = 0; i < 36*2; i++) {
+        mCubeUVCoords.push_back(cubeUVData[i]);
     }
 }
 
@@ -468,7 +533,6 @@ QMatrix4x4 Viewer::getCameraMatrix() {
     vMatrix.lookAt(cameraPosition, modelPosition, cameraUpDirection);
 
     return mPerspMatrix * vMatrix * mTransformMatrix;
-    // return vMatrix * mTransformMatrix;
 }
 
 void Viewer::draw_cube(QMatrix4x4 transformMatrix) {
@@ -482,10 +546,21 @@ void Viewer::draw_cube(QMatrix4x4 transformMatrix) {
     mProgram.enableAttributeArray("vertexNormal");
     mProgram.setAttributeBuffer("vertexNormal", GL_FLOAT, 0, 3);
 
+    mCubeUVBufferObject.bind();
+    mProgram.enableAttributeArray("vertexTexCoord");
+    mProgram.setAttributeBuffer("vertexTexCoord", GL_FLOAT, 0, 2);
+
     QMatrix4x4 modelViewMatrix = mTransformMatrix * transformMatrix;
     mProgram.setUniformValue(mMvMatrixLocation, modelViewMatrix);
     mProgram.setUniformValue(mNormalMatrixLocation, modelViewMatrix.normalMatrix());
     mProgram.setUniformValue(mMvpMatrixLocation, getCameraMatrix() * transformMatrix);
+
+
+    //TEXTURE MAPPING
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, mTextures->mTexIDs[0]);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, mTextures->mTexIDs[2]);
 
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
