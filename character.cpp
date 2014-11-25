@@ -1,5 +1,6 @@
 #include "character.hpp"
 #include <iostream>
+#include "Viewer.hpp"
 
 
 
@@ -143,10 +144,14 @@ void Character::jump() {
 			mVerticalVelocity = 0.5f;
 
 		mJumpCount++;
+
+		Viewer::mSounds->playJump();
 	}
 }
 
-void Character::applyGravity(double* velocity) {
+bool Character::applyGravity(double* velocity) {
+	bool onSurface = false;
+
 	mVerticalVelocity += GRAVITY;
 	
 	if (mVerticalVelocity < -3.0f) {
@@ -164,8 +169,11 @@ void Character::applyGravity(double* velocity) {
 		updatePosition();
 
 		// reset jump count since we're on a surface
-		if (direction == 4) mJumpCount = 0;
-
+		if (direction == 4) {
+			mJumpCount = 0;
+			onSurface = true;
+		}
+		
 		if (mVerticalVelocity < 0) {
 			mVerticalVelocity = 0;
 		}
@@ -173,4 +181,6 @@ void Character::applyGravity(double* velocity) {
 		mRoot->translate(QVector3D(0,*velocity,0));
 		updatePosition();
 	}
+
+	return onSurface;
 }

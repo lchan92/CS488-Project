@@ -28,11 +28,9 @@ public:
 	void strafeRight(double*  velocity);
 	void jump();
 
-	void applyGravity(double*  velocity);
+	bool applyGravity(double*  velocity);
 
 private:
-	void initSDL();
-
 	// constants
 	int MAX_JUMPS;
 	float GRAVITY;

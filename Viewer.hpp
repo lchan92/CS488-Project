@@ -16,6 +16,7 @@
 #include "scene.hpp"
 #include "character.hpp"
 #include "obstacle_map.hpp"
+#include "sounds.hpp"
 
 
 class Viewer : public QGLWidget {
@@ -36,10 +37,8 @@ public:
 
     void setModelRoot(SceneNode* node);
     void setMapRoot(SceneNode* node);
-
-    // If you want to render a new frame, call do not call paintGL(),
-    // instead, call update() to ensure that the view gets a paint 
-    // event.
+    
+    static Sounds* mSounds;
 
 public slots:
     void updatePositions();
@@ -61,7 +60,6 @@ protected:
     virtual void mouseMoveEvent(QMouseEvent *event);
     virtual void keyPressEvent(QKeyEvent *event);
     virtual void keyReleaseEvent(QKeyEvent *event);
-
 
 private:
 

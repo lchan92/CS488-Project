@@ -10,6 +10,10 @@
 #define GL_MULTISAMPLE 0x809D
 #endif
 
+
+Sounds* Viewer::mSounds = NULL;
+
+
 Viewer::Viewer(const QGLFormat& format, QWidget *parent) 
     : QGLWidget(format, parent) 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 1, 0))
@@ -34,11 +38,14 @@ Viewer::Viewer(const QGLFormat& format, QWidget *parent)
 
     mPlayer = new Character();
     mMap = new ObstacleMap();
+    mSounds = new Sounds();
 
     // positions for all objects are updated every second
     QTimer *timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(updatePositions()));
     timer->start(20);
+
+
 }
 
 Viewer::~Viewer() {
@@ -311,27 +318,45 @@ void Viewer::setMapRoot(SceneNode* node) {
 void Viewer::updatePositions() {
     double velocity;
 
-    mPlayer->applyGravity(&velocity);
+    bool onSurface = mPlayer->applyGravity(&velocity);
     mCameraTransformation.translate(0,velocity,0);
 
     if (mForwardFlag) {
         mPlayer->walkForward(&velocity);
         mCameraTransformation.translate(0,0,velocity);
+        
+        if (onSurface) {
+            Viewer::mSounds->playFootsteps();
+        }
     } else if (mBackwardFlag) {
         mPlayer->walkBackward(&velocity);
         mCameraTransformation.translate(0,0,velocity);
+
+        if (onSurface) {
+            Viewer::mSounds->playFootsteps();
+        }
     }
 
     if (mLeftFlag) {
         mPlayer->strafeLeft(&velocity);
         mCameraTransformation.translate(velocity,0,0);
+
+        if (onSurface) {
+            Viewer::mSounds->playFootsteps();
+        }
     } else if (mRightFlag) {
         mPlayer->strafeRight(&velocity);
-        mCameraTransformation.translate(velocity,0,0);    
+        mCameraTransformation.translate(velocity,0,0);
+        
+        if (onSurface) {
+            Viewer::mSounds->playFootsteps();
+        }
     }
 
     update();
 }
+
+
 
 
 // DRAWING STUFF
@@ -489,9 +514,4 @@ void Viewer::setMaterial(const Colour& kd, const Colour& ks, double shininess, Q
     mProgram.setUniformValue(mDiffuseLocation, QVector3D(kd.R(), kd.G(), kd.B()));
     mProgram.setUniformValue(mSpecularLocation, QVector3D(ks.R(), ks.G(), ks.B()));
     mProgram.setUniformValue(mShininessLocation, (float) shininess);
-
-    // QMatrix4x4 mvpMatrix = getCameraMatrix() * transformMatrix;
-    // mProgram.setUniformValue(mMvpMatrixLocation, mvpMatrix);
-    // mProgram.setUniformValue(mMvpNormalMatrixLocation, mvpMatrix.normalMatrix());
-    // mProgram.setUniformValue(mEyeMatrixLocation, getCameraMatrix());
 }
