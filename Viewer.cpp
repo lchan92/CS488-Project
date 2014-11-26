@@ -13,6 +13,7 @@
 
 Sounds* Viewer::mSounds = NULL;
 Textures* Viewer::mTextures = NULL;
+Lights* Viewer::mLights = NULL;
 
 
 Viewer::Viewer(const QGLFormat& format, QWidget *parent) 
@@ -41,6 +42,7 @@ Viewer::Viewer(const QGLFormat& format, QWidget *parent)
     mMap = new ObstacleMap();
     mSounds = new Sounds();
     mTextures = new Textures();
+    mLights = new Lights();
 
     // positions for all objects are updated every second
     QTimer *timer = new QTimer(this);
@@ -191,6 +193,11 @@ void Viewer::initializeGL() {
     int texLocation1 = mProgram.uniformLocation("tex1");
     mProgram.setUniformValue(texLocation0, 0);
     mProgram.setUniformValue(texLocation1, 1);
+
+    // LIGHTS
+    mLightPositionLocation = mProgram.uniformLocation("lightPositions");
+    mLightColourLocation = mProgram.uniformLocation("lightColours");
+    mLightFalloffLocation = mProgram.uniformLocation("lightFalloffs");
 }
 
 
@@ -230,10 +237,10 @@ void Viewer::scaleWorld(float x, float y, float z) {
     mTransformMatrix.scale(x, y, z);
 }
 
-void Viewer::set_colour(const QColor& col)
-{
-  mProgram.setUniformValue(mColorLocation, col.red()/255.0, col.green()/255.0, col.blue()/255.0);
-}
+// void Viewer::set_colour(const QColor& col)
+// {
+//   mProgram.setUniformValue(mColorLocation, col.red()/255.0, col.green()/255.0, col.blue()/255.0);
+// }
 
 
 
@@ -341,9 +348,12 @@ void Viewer::updatePositions() {
     bool onSurface = mPlayer->applyGravity(&velocity);
     mCameraTransformation.translate(0,velocity,0);
 
+    mLights->mPositions[0] += QVector4D(0,velocity,0,0);
+
     if (mForwardFlag) {
         mPlayer->walkForward(&velocity);
         mCameraTransformation.translate(0,0,velocity);
+        mLights->mPositions[0] += QVector4D(0,0,velocity,0);
         
         if (onSurface) {
             Viewer::mSounds->playFootsteps();
@@ -351,7 +361,8 @@ void Viewer::updatePositions() {
     } else if (mBackwardFlag) {
         mPlayer->walkBackward(&velocity);
         mCameraTransformation.translate(0,0,velocity);
-
+        mLights->mPositions[0] += QVector4D(0,0,velocity,0);
+        
         if (onSurface) {
             Viewer::mSounds->playFootsteps();
         }
@@ -360,6 +371,7 @@ void Viewer::updatePositions() {
     if (mLeftFlag) {
         mPlayer->strafeLeft(&velocity);
         mCameraTransformation.translate(velocity,0,0);
+        mLights->mPositions[0] += QVector4D(velocity,0,0,0);
 
         if (onSurface) {
             Viewer::mSounds->playFootsteps();
@@ -367,6 +379,7 @@ void Viewer::updatePositions() {
     } else if (mRightFlag) {
         mPlayer->strafeRight(&velocity);
         mCameraTransformation.translate(velocity,0,0);
+        mLights->mPositions[0] += QVector4D(velocity,0,0,0);
 
         if (onSurface) {
             Viewer::mSounds->playFootsteps();
@@ -555,10 +568,15 @@ void Viewer::draw_cube(QMatrix4x4 transformMatrix) {
     mProgram.setUniformValue(mNormalMatrixLocation, modelViewMatrix.normalMatrix());
     mProgram.setUniformValue(mMvpMatrixLocation, getCameraMatrix() * transformMatrix);
 
+    // LIGHTS
+    mProgram.setUniformValueArray(mLightPositionLocation, mLights->mPositions, NUM_LIGHTS);
+    mProgram.setUniformValueArray(mLightColourLocation, mLights->mColours, NUM_LIGHTS);
+    mProgram.setUniformValueArray(mLightFalloffLocation, mLights->mFalloffs, NUM_LIGHTS);
+
 
     //TEXTURE MAPPING
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, mTextures->mTexIDs[0]);
+    glBindTexture(GL_TEXTURE_2D, mTextures->mTexIDs[1]);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, mTextures->mTexIDs[2]);
 

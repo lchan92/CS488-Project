@@ -18,6 +18,7 @@
 #include "obstacle_map.hpp"
 #include "sounds.hpp"
 #include "textures.hpp"
+#include "lights.hpp"
 
 
 class Viewer : public QGLWidget {
@@ -41,6 +42,7 @@ public:
 
     static Sounds* mSounds;
     static Textures* mTextures;
+    static Lights* mLights;
 
 public slots:
     void updatePositions();
@@ -69,7 +71,7 @@ private:
     void translateWorld(float x, float y, float z);
     void rotateWorld(float theta, float x, float y, float z);
     void scaleWorld(float x, float y, float z);
-    void set_colour(const QColor& col);
+    // void set_colour(const QColor& col);
 
     void cubeSetup();
     void sphereSetup();
@@ -99,9 +101,10 @@ private:
 
     int mShadingLocation;
     int mDiffuseLocation, mSpecularLocation, mShininessLocation;
-    // int mMvpMatrixLocation, mMvpNormalMatrixLocation, mEyeMatrixLocation;
     int mMvpMatrixLocation, mMvMatrixLocation, mNormalMatrixLocation;
-    int mColorLocation;
+    // int mColorLocation;
+
+    int mLightPositionLocation, mLightColourLocation, mLightFalloffLocation;
 
 
     QMatrix4x4 mPerspMatrix;

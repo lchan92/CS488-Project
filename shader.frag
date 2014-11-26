@@ -6,8 +6,12 @@ in vec3 position;
 in vec2 texCoord;
 
 
-uniform vec3 Kd;
-uniform vec3 Ks;
+const int NUM_LIGHTS = 2;
+uniform vec4 lightPositions[NUM_LIGHTS];
+uniform vec3 lightColours[NUM_LIGHTS];
+uniform vec3 lightFalloffs[NUM_LIGHTS];
+
+
 uniform float Shininess;
 
 
@@ -18,46 +22,50 @@ uniform sampler2D tex1;
 out vec4 fragColor;
 
 
+void phongModel(const in vec3 norm, const in vec4 texColour) {
+	fragColor = vec4(0.2, 0.2, 0.2, 1) * texColour; // ambient
 
-void adsModel(const in vec3 norm,
-				out vec3 ambAndDiff, out vec3 spec) {
-	vec4 lightPosition = vec4(0,50,-50,1);
-
-	vec3 La = vec3(2, 2, 2);
-	vec3 Ld = vec3(0.5, 0.5, 0.5);
-	vec3 Ls = vec3(5, 5, 5);
-
-	vec3 Ka = vec3(0.1, 0.1, 0.1);
-	vec3 lightIntensity = vec3(2, 0.5, 5);
-
-
-
-	vec3 s = normalize(lightPosition.xyz - position);
 	vec3 v = normalize(-position.xyz);
-	vec3 r = reflect(-s, norm);
 
-	vec3 diffuseIntensity = vec3(max(dot(s, norm), 0.0));
+	for (int i = 0; i < NUM_LIGHTS; i++) {
+		vec4 lightPosition = lightPositions[i];
+		vec3 lightColour = lightColours[i];
+		vec3 lightFalloff = lightFalloffs[i];
 
-	vec3 specularIntensity = vec3(0.0);
-    if (dot(s, norm) > 0.0)
-        specularIntensity = vec3(pow(max(dot(r, v), 0.0), Shininess));
+		vec3 s = normalize(lightPosition.xyz - position);
+		vec3 r = reflect(-s, norm);
 
-	//return lightIntensity * (Ka + Kd * diffuseIntensity + Ks * specularIntensity);
-	//return La*Ka + Ld*Kd*diffuseIntensity + Ls*Ks*specularIntensity;
-	ambAndDiff = La*Ka + Ld*Kd*diffuseIntensity;
-	spec = Ls*Ks*specularIntensity;
+		vec3 specularIntensity = vec3(0.0);
+		float lightDotNormal = dot(s, norm);
+
+	    if (lightDotNormal > 0.005 || lightDotNormal < -0.005) {
+	        specularIntensity = vec3(pow(max(dot(r, v), 0.0), 25));
+
+		    vec3 specAndDiff = texColour.xyz + texColour.xyz * specularIntensity;
+		    
+		    // calculate attenuation
+		    float sLength = length(s);
+			float attenuation = 1/(lightFalloff.x + 
+									lightFalloff.y * sLength + 
+									lightFalloff.z * sLength * sLength);
+			vec3 lightAttenuation = lightColour * attenuation;
+
+			vec3 colour = specAndDiff * lightDotNormal * lightAttenuation;
+			colour = clamp(colour, vec3(0,0,0), vec3(1,1,1));
+
+			fragColor = fragColor + vec4(colour, 1.0);
+			fragColor = clamp(fragColor, vec4(0,0,0,1), vec4(1,1,1,1));
+	    }
+	}
+	
+
 }
 
-
 void main() {
-	// PHONG
-	vec3 ambAndDiff, spec;
-	adsModel(normalize(normal), ambAndDiff, spec);
-
 	// TEXTURES
 	vec4 texColour1 = texture(tex0, texCoord);
 	vec4 texColour2 = texture(tex1, texCoord);
-	//vec4 texColour = mix(texColour1, texColour2, 0.5);
+	vec4 texColour = mix(texColour1, texColour2, 0.2);
 
-	fragColor = vec4(ambAndDiff, 1.0) * texColour1 + vec4(spec, 1.0);
+	phongModel(normalize(normal), texColour);
 }
