@@ -22,6 +22,7 @@ HEADERS += algebra.hpp \
            sounds.hpp \
            textures.hpp \
            lights.hpp \
+           cubemap.hpp \
            scene_lua.hpp \
            lua488.hpp
 SOURCES += algebra.cpp \
@@ -36,4 +37,5 @@ SOURCES += algebra.cpp \
            textures.cpp \
            obstacle_map.cpp \
            lights.cpp \
+           cubemap.cpp \
            scene_lua.cpp

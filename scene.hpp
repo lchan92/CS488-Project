@@ -2,7 +2,6 @@
 #define SCENE_HPP
 
 #include <list>
-// #include "algebra.hpp"
 #include <QMatrix4x4>
 #include <QVector3D>
 #include <QVector4D>

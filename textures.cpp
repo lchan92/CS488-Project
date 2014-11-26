@@ -20,7 +20,6 @@ void Textures::load() {
 
 void Textures::loadImage(const char *imagePath, const char *fileType) {
 	// cookbook texture page
-
 	QImage image = QGLWidget::convertToGLFormat(QImage(imagePath, fileType));
 
 	GLuint textureID;
@@ -31,6 +30,6 @@ void Textures::loadImage(const char *imagePath, const char *fileType) {
 	
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	// std::cout << "texture id: " << textureID << "    path: " << imagePath << std::endl;
+
 	mTexIDs.push_back(textureID);
 }

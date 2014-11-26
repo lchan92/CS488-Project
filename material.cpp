@@ -16,5 +16,5 @@ PhongMaterial::~PhongMaterial()
 
 void PhongMaterial::apply_gl(QMatrix4x4 transformMatrix) const
 {
-	AppWindow::m_viewer->setMaterial(m_kd, m_ks, m_shininess, transformMatrix);
+	// AppWindow::m_viewer->setMaterial(m_kd, m_ks, m_shininess, transformMatrix);
 }

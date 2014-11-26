@@ -14,6 +14,7 @@
 Sounds* Viewer::mSounds = NULL;
 Textures* Viewer::mTextures = NULL;
 Lights* Viewer::mLights = NULL;
+CubeMap* Viewer::mCubeMap = NULL;
 
 
 Viewer::Viewer(const QGLFormat& format, QWidget *parent) 
@@ -41,6 +42,7 @@ Viewer::Viewer(const QGLFormat& format, QWidget *parent)
     mPlayer = new Character();
     mMap = new ObstacleMap();
     mSounds = new Sounds();
+    mCubeMap = new CubeMap();
     mTextures = new Textures();
     mLights = new Lights();
 
@@ -177,9 +179,11 @@ void Viewer::initializeGL() {
     }
     mSphereBufferObject.allocate(&mSphereVerts[0], 1600 * 6 * sizeof(float));
 
+    mCubeMap->load();
     mTextures->load();
 
     // variables to pass to shader
+    mMMatrixLocation = mProgram.uniformLocation("M");
     mMvMatrixLocation = mProgram.uniformLocation("MV");
     mNormalMatrixLocation = mProgram.uniformLocation("N");
     mMvpMatrixLocation = mProgram.uniformLocation("MVP");
@@ -188,11 +192,9 @@ void Viewer::initializeGL() {
     mSpecularLocation = mProgram.uniformLocation("Ks");
     mShininessLocation = mProgram.uniformLocation("Shininess");
 
-    // TEXTURES
-    int texLocation0 = mProgram.uniformLocation("tex0");
-    int texLocation1 = mProgram.uniformLocation("tex1");
-    mProgram.setUniformValue(texLocation0, 0);
-    mProgram.setUniformValue(texLocation1, 1);
+    // CUBEMAP
+    mDrawSkyBoxLocation = mProgram.uniformLocation("drawSkyBox");
+    mWorldCameraPosLocation = mProgram.uniformLocation("worldCameraPos");
 
     // LIGHTS
     mLightPositionLocation = mProgram.uniformLocation("lightPositions");
@@ -207,6 +209,10 @@ void Viewer::paintGL() {
     // Clear framebuffer
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    mDrawSkyBox = true;
+    drawSkyBox();
+
+    mDrawSkyBox = false;
     mPlayer->draw();
     mMap->draw();
 }
@@ -237,10 +243,6 @@ void Viewer::scaleWorld(float x, float y, float z) {
     mTransformMatrix.scale(x, y, z);
 }
 
-// void Viewer::set_colour(const QColor& col)
-// {
-//   mProgram.setUniformValue(mColorLocation, col.red()/255.0, col.green()/255.0, col.blue()/255.0);
-// }
 
 
 
@@ -564,6 +566,7 @@ void Viewer::draw_cube(QMatrix4x4 transformMatrix) {
     mProgram.setAttributeBuffer("vertexTexCoord", GL_FLOAT, 0, 2);
 
     QMatrix4x4 modelViewMatrix = mTransformMatrix * transformMatrix;
+    mProgram.setUniformValue(mMMatrixLocation, transformMatrix);
     mProgram.setUniformValue(mMvMatrixLocation, modelViewMatrix);
     mProgram.setUniformValue(mNormalMatrixLocation, modelViewMatrix.normalMatrix());
     mProgram.setUniformValue(mMvpMatrixLocation, getCameraMatrix() * transformMatrix);
@@ -573,17 +576,28 @@ void Viewer::draw_cube(QMatrix4x4 transformMatrix) {
     mProgram.setUniformValueArray(mLightColourLocation, mLights->mColours, NUM_LIGHTS);
     mProgram.setUniformValueArray(mLightFalloffLocation, mLights->mFalloffs, NUM_LIGHTS);
 
+    // CUBEMAP
+    mProgram.setUniformValue(mDrawSkyBoxLocation, mDrawSkyBox);
 
-    //TEXTURE MAPPING
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, mTextures->mTexIDs[1]);
+    mProgram.setUniformValue("cubeMapTex", 0);
+    // std::cout << "mCubeMap id: " << mCubeMap->mTexID << std::endl;
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mCubeMap->mTexID);
+
+    // TEXTURE MAPPING
     glActiveTexture(GL_TEXTURE1);
+    mProgram.setUniformValue("tex1", 1);
+    glBindTexture(GL_TEXTURE_2D, mTextures->mTexIDs[1]);
+
+    glActiveTexture(GL_TEXTURE2);
+    mProgram.setUniformValue("tex2", 2);
     glBindTexture(GL_TEXTURE_2D, mTextures->mTexIDs[2]);
 
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 
 void Viewer::draw_sphere(QMatrix4x4 transformMatrix) {
+    // NEED TO FIX
     mProgram.bind();
 
     mSphereBufferObject.bind();
@@ -595,16 +609,32 @@ void Viewer::draw_sphere(QMatrix4x4 transformMatrix) {
     mProgram.setAttributeBuffer("vertexNormal", GL_FLOAT, 0, 3);
 
     QMatrix4x4 modelViewMatrix = mTransformMatrix * transformMatrix;
+    mProgram.setUniformValue(mMMatrixLocation, transformMatrix);
     mProgram.setUniformValue(mMvMatrixLocation, modelViewMatrix);
     mProgram.setUniformValue(mNormalMatrixLocation, modelViewMatrix.normalMatrix());
     mProgram.setUniformValue(mMvpMatrixLocation, getCameraMatrix() * transformMatrix);
 
+    // LIGHTS
+    mProgram.setUniformValueArray(mLightPositionLocation, mLights->mPositions, NUM_LIGHTS);
+    mProgram.setUniformValueArray(mLightColourLocation, mLights->mColours, NUM_LIGHTS);
+    mProgram.setUniformValueArray(mLightFalloffLocation, mLights->mFalloffs, NUM_LIGHTS);
+
+    // CUBEMAP
+    mProgram.setUniformValue(mDrawSkyBoxLocation, mDrawSkyBox);
+    mProgram.setUniformValue(mWorldCameraPosLocation, QVector3D(0,0,0));
+
+
+    glActiveTexture(GL_TEXTURE0);
+    mProgram.setUniformValue("cubeMapTex", 0);
+    // std::cout << "mCubeMap id: " << mCubeMap->mTexID << std::endl;
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mCubeMap->mTexID);
+
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 3200);
 }
 
+void Viewer::drawSkyBox() {
+    QMatrix4x4 transformMatrix;
+    transformMatrix.scale(1000,1000,1000);
 
-void Viewer::setMaterial(const Colour& kd, const Colour& ks, double shininess, QMatrix4x4 transformMatrix) {
-    mProgram.setUniformValue(mDiffuseLocation, QVector3D(kd.R(), kd.G(), kd.B()));
-    mProgram.setUniformValue(mSpecularLocation, QVector3D(ks.R(), ks.G(), ks.B()));
-    mProgram.setUniformValue(mShininessLocation, (float) shininess);
+    draw_sphere(transformMatrix);
 }

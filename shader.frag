@@ -4,6 +4,7 @@
 in vec3 normal;
 in vec3 position;
 in vec2 texCoord;
+in vec3 reflectDir;
 
 
 const int NUM_LIGHTS = 2;
@@ -12,18 +13,21 @@ uniform vec3 lightColours[NUM_LIGHTS];
 uniform vec3 lightFalloffs[NUM_LIGHTS];
 
 
-uniform float Shininess;
+//uniform float Shininess;
 
-
-uniform sampler2D tex0;
+uniform samplerCube cubeMapTex;
 uniform sampler2D tex1;
+uniform sampler2D tex2;
 
+uniform bool drawSkyBox;
+uniform float reflectFactor;
+uniform vec4 materialColour;
 
-out vec4 fragColor;
+out vec4 fragColour;
 
 
 void phongModel(const in vec3 norm, const in vec4 texColour) {
-	fragColor = vec4(0.2, 0.2, 0.2, 1) * texColour; // ambient
+	fragColour = vec4(0.2, 0.2, 0.2, 1) * texColour; // ambient
 
 	vec3 v = normalize(-position.xyz);
 
@@ -53,8 +57,8 @@ void phongModel(const in vec3 norm, const in vec4 texColour) {
 			vec3 colour = specAndDiff * lightDotNormal * lightAttenuation;
 			colour = clamp(colour, vec3(0,0,0), vec3(1,1,1));
 
-			fragColor = fragColor + vec4(colour, 1.0);
-			fragColor = clamp(fragColor, vec4(0,0,0,1), vec4(1,1,1,1));
+			fragColour = fragColour + vec4(colour, 1.0);
+			fragColour = clamp(fragColour, vec4(0,0,0,1), vec4(1,1,1,1));
 	    }
 	}
 	
@@ -62,10 +66,20 @@ void phongModel(const in vec3 norm, const in vec4 texColour) {
 }
 
 void main() {
-	// TEXTURES
-	vec4 texColour1 = texture(tex0, texCoord);
-	vec4 texColour2 = texture(tex1, texCoord);
-	vec4 texColour = mix(texColour1, texColour2, 0.2);
+	// CUBEMAP
+	vec4 cubeMapColour = texture(cubeMapTex, reflectDir);
+	//vec4 cubeMapColour = vec4(reflectDir, 1);
 
-	phongModel(normalize(normal), texColour);
+	// TEXTURES
+	vec4 texColour1 = texture(tex1, texCoord);
+	vec4 texColour2 = texture(tex2, texCoord);
+	vec4 texColour = mix(texColour1, texColour2, 0.7);
+
+	//phongModel(normalize(normal), texColour);
+	if (drawSkyBox)
+		fragColour = cubeMapColour;
+	else {
+		phongModel(normalize(normal), texColour);
+		fragColour = mix(fragColour, cubeMapColour, 0.2);
+	}
 }

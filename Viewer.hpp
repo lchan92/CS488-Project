@@ -19,6 +19,7 @@
 #include "sounds.hpp"
 #include "textures.hpp"
 #include "lights.hpp"
+#include "cubemap.hpp"
 
 
 class Viewer : public QGLWidget {
@@ -35,12 +36,11 @@ public:
     void draw_cube(QMatrix4x4 transformMatrix);
     void draw_sphere(QMatrix4x4 transformMatrix);
 
-    void setMaterial(const Colour& kd, const Colour& ks, double shininess, QMatrix4x4 transformMatrix);
-
     void setModelRoot(SceneNode* node);
     void setMapRoot(SceneNode* node);
 
     static Sounds* mSounds;
+    static CubeMap* mCubeMap;
     static Textures* mTextures;
     static Lights* mLights;
 
@@ -66,12 +66,12 @@ protected:
     virtual void keyReleaseEvent(QKeyEvent *event);
 
 private:
+    void drawSkyBox();
 
     QMatrix4x4 getCameraMatrix();
     void translateWorld(float x, float y, float z);
     void rotateWorld(float theta, float x, float y, float z);
     void scaleWorld(float x, float y, float z);
-    // void set_colour(const QColor& col);
 
     void cubeSetup();
     void sphereSetup();
@@ -84,6 +84,8 @@ private:
 
     bool mLeftFlag, mRightFlag, mForwardFlag, mBackwardFlag;
     int mJumpCount;
+
+    bool mDrawSkyBox;
 
     // mouse
     QMatrix4x4 mCameraTransformation;
@@ -101,9 +103,8 @@ private:
 
     int mShadingLocation;
     int mDiffuseLocation, mSpecularLocation, mShininessLocation;
-    int mMvpMatrixLocation, mMvMatrixLocation, mNormalMatrixLocation;
-    // int mColorLocation;
-
+    int mMvpMatrixLocation, mMvMatrixLocation, mNormalMatrixLocation, mMMatrixLocation;
+    int mDrawSkyBoxLocation, mWorldCameraPosLocation;
     int mLightPositionLocation, mLightColourLocation, mLightFalloffLocation;
 
 
