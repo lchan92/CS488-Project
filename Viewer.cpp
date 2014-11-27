@@ -635,6 +635,5 @@ void Viewer::draw_sphere(QMatrix4x4 transformMatrix) {
 void Viewer::drawSkyBox() {
     QMatrix4x4 transformMatrix;
     transformMatrix.scale(1000,1000,1000);
-
     draw_sphere(transformMatrix);
 }

@@ -3,10 +3,10 @@
 #include <iostream>
 
 CubeMap::CubeMap() {
-	mImagePaths[0] = "cubemap/right.png";
-	mImagePaths[1] = "cubemap/left.png";
-	mImagePaths[2] = "cubemap/top.png";
-	mImagePaths[3] = "cubemap/down.png";
+	mImagePaths[0] = "cubemap/left.png";
+	mImagePaths[1] = "cubemap/right.png";
+	mImagePaths[2] = "cubemap/down.png";
+	mImagePaths[3] = "cubemap/top.png";
 	mImagePaths[4] = "cubemap/front.png";
 	mImagePaths[5] = "cubemap/back.png";
 }

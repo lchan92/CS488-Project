@@ -29,14 +29,14 @@ void main()
     texCoord = vertexTexCoord;
 
     if (drawSkyBox) {
-    	reflectDir = vertexPosition;
+    	reflectDir = -vertexPosition;
     } else {
     	vec3 worldPos = vec3(M * vec4(vertexPosition, 1.0));
     	vec3 worldNorm = vec3(M * vec4(vertexNormal, 0.0));
         //vec3 worldView = normalize(worldCameraPos - worldPos);
     	vec3 worldView = normalize(vec3(0.0) - worldPos);
 
-    	reflectDir = reflect(-worldView, worldNorm);
+    	reflectDir = -reflect(-worldView, worldNorm);
     }
 
     gl_Position = MVP * vec4(vertexPosition, 1.0);

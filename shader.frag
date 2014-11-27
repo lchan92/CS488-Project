@@ -27,7 +27,7 @@ out vec4 fragColour;
 
 
 void phongModel(const in vec3 norm, const in vec4 texColour) {
-	fragColour = vec4(0.2, 0.2, 0.2, 1) * texColour; // ambient
+	fragColour = vec4(0.5, 0.5, 0.25, 1) * texColour; // ambient
 
 	vec3 v = normalize(-position.xyz);
 
@@ -68,7 +68,6 @@ void phongModel(const in vec3 norm, const in vec4 texColour) {
 void main() {
 	// CUBEMAP
 	vec4 cubeMapColour = texture(cubeMapTex, reflectDir);
-	//vec4 cubeMapColour = vec4(reflectDir, 1);
 
 	// TEXTURES
 	vec4 texColour1 = texture(tex1, texCoord);
@@ -80,6 +79,6 @@ void main() {
 		fragColour = cubeMapColour;
 	else {
 		phongModel(normalize(normal), texColour);
-		fragColour = mix(fragColour, cubeMapColour, 0.2);
+		//fragColour = mix(fragColour, cubeMapColour, 0.2);
 	}
 }
