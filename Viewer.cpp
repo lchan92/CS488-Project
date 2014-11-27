@@ -248,7 +248,6 @@ void Viewer::scaleWorld(float x, float y, float z) {
 
 
 void Viewer::mousePressEvent(QMouseEvent *event) {
-    std::cout << "mouse pressed" << std::endl;
 }
 
 void Viewer::mouseReleaseEvent(QMouseEvent *event) {
@@ -386,6 +385,10 @@ void Viewer::updatePositions() {
         if (onSurface) {
             Viewer::mSounds->playFootsteps();
         }
+    }
+
+    if (!(mForwardFlag || mBackwardFlag || mLeftFlag || mRightFlag)) {
+        Viewer::mSounds->stopFootsteps();
     }
 
     update();
@@ -579,11 +582,6 @@ void Viewer::draw_cube(QMatrix4x4 transformMatrix) {
     // CUBEMAP
     mProgram.setUniformValue(mDrawSkyBoxLocation, mDrawSkyBox);
 
-    glActiveTexture(GL_TEXTURE0);
-    mProgram.setUniformValue("cubeMapTex", 0);
-    // std::cout << "mCubeMap id: " << mCubeMap->mTexID << std::endl;
-    glBindTexture(GL_TEXTURE_CUBE_MAP, mCubeMap->mTexID);
-
     // TEXTURE MAPPING
     glActiveTexture(GL_TEXTURE1);
     mProgram.setUniformValue("tex1", 1);
@@ -622,7 +620,6 @@ void Viewer::draw_sphere(QMatrix4x4 transformMatrix) {
     // CUBEMAP
     mProgram.setUniformValue(mDrawSkyBoxLocation, mDrawSkyBox);
     mProgram.setUniformValue(mWorldCameraPosLocation, QVector3D(0,0,0));
-
 
     glActiveTexture(GL_TEXTURE0);
     mProgram.setUniformValue("cubeMapTex", 0);

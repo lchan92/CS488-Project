@@ -51,7 +51,11 @@ void Sounds::playFootsteps() {
 	}
 }
 
-void Sounds::playJump() {
+void Sounds::stopFootsteps() {
 	Mix_HaltChannel(0);
+}
+
+void Sounds::playJump() {
+	stopFootsteps();
 	Mix_PlayChannel(1, jump, 0);
 }

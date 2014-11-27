@@ -10,6 +10,7 @@ public:
 	virtual ~Sounds();
 
 	void playFootsteps();
+	void stopFootsteps();
 	void playJump();
 private:
 	void init();
