@@ -53,6 +53,9 @@ void SubMesh::bind() {
 Mesh::Mesh() {
 	mTextures = new Textures();
 	mInitializedBB = false;
+
+	mVertex1 = QVector4D(0,0,0,1);
+	mVertex2 = QVector4D(0,0,0,1);
 }
 
 Mesh::~Mesh() {}
@@ -95,6 +98,8 @@ void Mesh::init(const aiScene* scene) {
 		const aiMesh* mesh = scene->mMeshes[i];
 		initSubMesh(i, mesh);
 	}
+
+	setTransform();
 }
 
 
@@ -148,9 +153,16 @@ void Mesh::initSubMesh(int index, const aiMesh* mesh) {
 		}
 	}
 
-	// BOUNDING BOX VARIABLE SET
-	mVertex1 = QVector4D(minX, minY, maxZ, 1);
-	mVertex2 = QVector4D(maxX, maxY, minZ, 1);
+
+	// BOUNDING BOX STUFF
+	if (minX < mVertex1.x()) mVertex1.setX(minX);
+	if (maxX > mVertex2.x()) mVertex2.setX(maxX);
+
+	if (minY < mVertex1.y()) mVertex1.setY(minY);
+	if (maxY > mVertex2.y()) mVertex2.setY(maxY);
+
+	if (minZ < mVertex2.z()) mVertex2.setZ(minZ);
+	if (maxZ > mVertex1.z()) mVertex1.setZ(maxZ);
 
 
 	// load faces
@@ -198,8 +210,24 @@ void Mesh::bind() {
 }
 
 void Mesh::setTransform() {
+	float midX = mVertex1.x() + (mVertex2.x() - mVertex1.x())/2;
+	float midY = mVertex1.y() + (mVertex2.y() - mVertex1.y())/2;
+	float midZ = mVertex2.z() + (mVertex1.z() - mVertex2.z())/2;
+	mInitPosition = QVector4D(midX, midY, midZ, 1);
+
+	translate(QVector3D(0,0,7));
+	mRotateTransform.rotate(180, QVector3D(0,1,0));
 }
 
 QMatrix4x4 Mesh::getTransform() {
 	return mTransform;
 }
+
+QMatrix4x4 Mesh::getRotationTransform() {
+	return mRotateTransform;
+}
+
+void Mesh::translate(QVector3D amount) {
+	mTransform.translate(amount.x(), amount.y(), amount.z());
+}
+

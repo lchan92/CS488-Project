@@ -19,12 +19,6 @@ CubeMap* Viewer::mCubeMap = NULL;
 
 Viewer::Viewer(const QGLFormat& format, QWidget *parent) 
     : QGLWidget(format, parent) 
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 1, 0))
-    // , mCircleBufferObject(QOpenGLBuffer::VertexBuffer)
-    , mVertexArrayObject(this)
-#else 
-    // , mCircleBufferObject(QGLBuffer::VertexBuffer)
-#endif
 {
     setFocusPolicy(Qt::StrongFocus);
     setMouseTracking(true);
@@ -38,6 +32,7 @@ Viewer::Viewer(const QGLFormat& format, QWidget *parent)
 
     cubeSetup();
     sphereSetup();
+
 
     mPlayer = new Character();
     mMap = new ObstacleMap();
@@ -94,9 +89,6 @@ void Viewer::initializeGL() {
 
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 1, 0))
-    mVertexArrayObject.create();
-    mVertexArrayObject.bind();
-
     mCubeBufferObject.create();
     mCubeBufferObject.setUsagePattern(QOpenGLBuffer::StaticDraw);
 
@@ -337,11 +329,6 @@ void Viewer::keyReleaseEvent(QKeyEvent *event) {
 
 
 // NODE SETUP
-
-void Viewer::setModelRoot(SceneNode* node) {
-    mPlayer->setRoot(node);
-}
-
 void Viewer::setMapRoot(SceneNode* node) {
     mMap->setRoot(node);
     mPlayer->setMapRoot(node);
@@ -563,7 +550,7 @@ QMatrix4x4 Viewer::getCameraMatrix() {
 void Viewer::draw_mesh(Mesh* mesh) {
     mProgram.bind();
 
-    QMatrix4x4 transformMatrix = mesh->getTransform();
+    QMatrix4x4 transformMatrix = mesh->getTransform() * mesh->getRotationTransform();
     QMatrix4x4 modelViewMatrix = mTransformMatrix * transformMatrix;
     mProgram.setUniformValue(mMMatrixLocation, transformMatrix);
     mProgram.setUniformValue(mMvMatrixLocation, modelViewMatrix);

@@ -45,7 +45,9 @@ public:
 
 	void setTransform();
 	QMatrix4x4 getTransform();
+	QMatrix4x4 getRotationTransform();
 
+	void translate(QVector3D amount);
 
 
     std::vector<SubMesh*> subMeshes;
@@ -54,10 +56,11 @@ public:
     // BOUNDING BOX VARIABLES
     bool mInitializedBB;
     QVector4D mVertex1, mVertex2;
+    QVector4D mInitPosition;
 private:
 	void initSubMesh(int index, const aiMesh* mesh);
 
-	QMatrix4x4 mTransform;
+	QMatrix4x4 mRotateTransform, mTransform;
 };
 
 #endif

@@ -4,7 +4,7 @@
 
 Viewer* AppWindow::m_viewer = NULL;
 
-AppWindow::AppWindow(SceneNode* modelRoot, SceneNode* mapRoot) {
+AppWindow::AppWindow(SceneNode* mapRoot) {
     setWindowTitle("Project");
 
     QGLFormat glFormat;
@@ -15,9 +15,8 @@ AppWindow::AppWindow(SceneNode* modelRoot, SceneNode* mapRoot) {
     QVBoxLayout *layout = new QVBoxLayout;
 
     m_viewer = new Viewer(glFormat, this);
-    m_viewer->setModelRoot(modelRoot);
     m_viewer->setMapRoot(mapRoot);
-    
+
     layout->addWidget(m_viewer);
 
     setCentralWidget(new QWidget);

@@ -11,7 +11,6 @@ public:
 	Character();
 	virtual ~Character();
 
-	void setRoot(SceneNode* root);
 	void setMapRoot(SceneNode* mapRoot);
 	void bind();
 
@@ -46,7 +45,7 @@ private:
 	//BOUNDING BOX
 	QVector4D mVertex1, mVertex2;
 
-	SceneNode *mRoot, *mMapRoot;
+	SceneNode *mMapRoot;
 	Mesh* mMesh;
 };
 

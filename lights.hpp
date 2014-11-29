@@ -4,7 +4,7 @@
 #include <QVector3D>
 #include <QVector4D>
 
-#define NUM_LIGHTS 2
+#define NUM_LIGHTS 3
 
 class Lights {
 public:

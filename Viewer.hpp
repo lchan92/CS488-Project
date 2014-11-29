@@ -38,7 +38,6 @@ public:
     void draw_cube(QMatrix4x4 transformMatrix, std::vector<int> textureIDs);
     void draw_sphere(QMatrix4x4 transformMatrix);
 
-    void setModelRoot(SceneNode* node);
     void setMapRoot(SceneNode* node);
 
     static Sounds* mSounds;
@@ -96,7 +95,6 @@ private:
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 1, 0))
     QOpenGLBuffer mCubeBufferObject, mCubeNormalBufferObject, mCubeUVBufferObject;
     QOpenGLBuffer mSphereBufferObject, mSphereNormalBufferObject;
-    QOpenGLVertexArrayObject mVertexArrayObject;
 #else 
     QGLBuffer mCubeBufferObject, mCubeNormalBufferObject, mCubeUVBufferObject;
     QGLBuffer mSphereBufferObject, mSphereNormalBufferObject;
