@@ -4,6 +4,7 @@
 #include <iostream>
 #include <QtOpenGL>
 #include "scene.hpp"
+#include "mesh.hpp"
 
 class Character {
 public:
@@ -12,6 +13,7 @@ public:
 
 	void setRoot(SceneNode* root);
 	void setMapRoot(SceneNode* mapRoot);
+	void bind();
 
 	void draw();
 
@@ -45,6 +47,7 @@ private:
 	QVector4D mVertex1, mVertex2;
 
 	SceneNode *mRoot, *mMapRoot;
+	Mesh* mMesh;
 };
 
 #endif

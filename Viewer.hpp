@@ -20,6 +20,7 @@
 #include "textures.hpp"
 #include "lights.hpp"
 #include "cubemap.hpp"
+#include "mesh.hpp"
 
 
 class Viewer : public QGLWidget {
@@ -33,7 +34,8 @@ public:
     QSize minimumSizeHint() const;
     QSize sizeHint() const;
 
-    void draw_cube(QMatrix4x4 transformMatrix);
+    void draw_mesh(Mesh* mesh);
+    void draw_cube(QMatrix4x4 transformMatrix, std::vector<int> textureIDs);
     void draw_sphere(QMatrix4x4 transformMatrix);
 
     void setModelRoot(SceneNode* node);

@@ -179,8 +179,15 @@ void Viewer::initializeGL() {
     }
     mSphereBufferObject.allocate(&mSphereVerts[0], 1600 * 6 * sizeof(float));
 
+    // load textures
     mCubeMap->load();
     mTextures->load();
+
+    // load and bind character mesh
+    mPlayer->bind();
+
+
+
 
     // variables to pass to shader
     mMMatrixLocation = mProgram.uniformLocation("M");
@@ -254,16 +261,16 @@ void Viewer::mouseReleaseEvent(QMouseEvent *event) {
 }
 
 void Viewer::mouseMoveEvent(QMouseEvent *event) {
-    // QPoint center = mapToGlobal(rect().center());
-    // QPoint mouseMove = (event->globalPos() - center);
-    // if (mouseMove.isNull())
-    //     return;
+    QPoint center = mapToGlobal(rect().center());
+    QPoint mouseMove = (event->globalPos() - center);
+    if (mouseMove.isNull())
+        return;
 
-    // float deltaX = mouseMove.x();
+    float deltaX = mouseMove.x();
     // mPlayer->rotateY(-deltaX/10);
-    // mCameraTransformation.rotate(-deltaX/10, 0, 1, 0);
+    mCameraTransformation.rotate(-deltaX/10, 0, 1, 0);
 
-    // cursor().setPos(center);
+    cursor().setPos(center);
 }
 
 void Viewer::keyPressEvent(QKeyEvent *event) {
@@ -387,7 +394,7 @@ void Viewer::updatePositions() {
         }
     }
 
-    if (!(mForwardFlag || mBackwardFlag || mLeftFlag || mRightFlag)) {
+    if (!(mForwardFlag || mBackwardFlag || mLeftFlag || mRightFlag) || !onSurface) {
         Viewer::mSounds->stopFootsteps();
     }
 
@@ -553,7 +560,58 @@ QMatrix4x4 Viewer::getCameraMatrix() {
     return mPerspMatrix * vMatrix * mTransformMatrix;
 }
 
-void Viewer::draw_cube(QMatrix4x4 transformMatrix) {
+void Viewer::draw_mesh(Mesh* mesh) {
+    mProgram.bind();
+
+    QMatrix4x4 transformMatrix = mesh->getTransform();
+    QMatrix4x4 modelViewMatrix = mTransformMatrix * transformMatrix;
+    mProgram.setUniformValue(mMMatrixLocation, transformMatrix);
+    mProgram.setUniformValue(mMvMatrixLocation, modelViewMatrix);
+    mProgram.setUniformValue(mNormalMatrixLocation, modelViewMatrix.normalMatrix());
+    mProgram.setUniformValue(mMvpMatrixLocation, getCameraMatrix() * transformMatrix);
+
+    // LIGHTS
+    mProgram.setUniformValueArray(mLightPositionLocation, mLights->mPositions, NUM_LIGHTS);
+    mProgram.setUniformValueArray(mLightColourLocation, mLights->mColours, NUM_LIGHTS);
+    mProgram.setUniformValueArray(mLightFalloffLocation, mLights->mFalloffs, NUM_LIGHTS);
+
+    // CUBEMAP
+    mProgram.setUniformValue(mDrawSkyBoxLocation, mDrawSkyBox);
+
+
+    Textures* textures = mesh->mTextures;
+
+    for (int i = 0; i < mesh->subMeshes.size(); i++) {
+        SubMesh* subMesh = mesh->subMeshes[i];
+
+        subMesh->mVBO.bind();
+        mProgram.enableAttributeArray("vertexPosition");
+        mProgram.setAttributeBuffer("vertexPosition", GL_FLOAT, 0, 3);
+
+        subMesh->mNBO.bind();
+        mProgram.enableAttributeArray("vertexNormal");
+        mProgram.setAttributeBuffer("vertexNormal", GL_FLOAT, 0, 3);
+
+        subMesh->mUVBO.bind();
+        mProgram.enableAttributeArray("vertexTexCoord");
+        mProgram.setAttributeBuffer("vertexTexCoord", GL_FLOAT, 0, 2);
+
+        // TEXTURE MAPPING
+        glActiveTexture(GL_TEXTURE1);
+        mProgram.setUniformValue("tex1", 1);
+        int index = subMesh->mMaterialIndex;
+        glBindTexture(GL_TEXTURE_2D, textures->mIDs[index]);
+
+        glActiveTexture(GL_TEXTURE2);
+        mProgram.setUniformValue("tex2", 2);
+        glBindTexture(GL_TEXTURE_2D, textures->mIDs[index]);
+
+
+        glDrawArrays(GL_TRIANGLES, 0, subMesh->mNumTriangles);
+    }
+}
+
+void Viewer::draw_cube(QMatrix4x4 transformMatrix, std::vector<int> textureIndices) {
     mProgram.bind();
 
     mCubeBufferObject.bind();
@@ -583,13 +641,13 @@ void Viewer::draw_cube(QMatrix4x4 transformMatrix) {
     mProgram.setUniformValue(mDrawSkyBoxLocation, mDrawSkyBox);
 
     // TEXTURE MAPPING
-    glActiveTexture(GL_TEXTURE1);
-    mProgram.setUniformValue("tex1", 1);
-    glBindTexture(GL_TEXTURE_2D, mTextures->mTexIDs[1]);
+    for (int i = 0; i < textureIndices.size(); i++) {
+        glActiveTexture(GL_TEXTURE1 + i);
+        mProgram.setUniformValue(("tex" + std::to_string(i+1)).c_str(), i+1);
 
-    glActiveTexture(GL_TEXTURE2);
-    mProgram.setUniformValue("tex2", 2);
-    glBindTexture(GL_TEXTURE_2D, mTextures->mTexIDs[2]);
+        int index = textureIndices[i];
+        glBindTexture(GL_TEXTURE_2D, mTextures->mIDs[index]);
+    }
 
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
@@ -623,7 +681,6 @@ void Viewer::draw_sphere(QMatrix4x4 transformMatrix) {
 
     glActiveTexture(GL_TEXTURE0);
     mProgram.setUniformValue("cubeMapTex", 0);
-    // std::cout << "mCubeMap id: " << mCubeMap->mTexID << std::endl;
     glBindTexture(GL_TEXTURE_CUBE_MAP, mCubeMap->mTexID);
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 3200);

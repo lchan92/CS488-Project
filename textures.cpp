@@ -26,10 +26,12 @@ void Textures::loadImage(const char *imagePath, const char *fileType) {
 	glGenTextures(1, &textureID);
 	glBindTexture(GL_TEXTURE_2D, textureID);
 
+	std::cout << "imagepath: " << imagePath << "   height: " << image.height() << "   width: " << image.width() << std::endl;
+
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width(), image.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, image.bits());
-	
+
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-	mTexIDs.push_back(textureID);
+	mIDs.push_back(textureID);
 }

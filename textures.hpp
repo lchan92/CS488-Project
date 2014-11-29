@@ -10,10 +10,9 @@ public:
 	virtual ~Textures();
 
 	void load();
-
-	std::vector<GLuint> mTexIDs;
-private:
 	void loadImage(const char *imagePath, const char *fileType);
+
+	std::vector<int> mIDs;
 };
 
 #endif

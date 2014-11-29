@@ -69,15 +69,15 @@ void main() {
 	// CUBEMAP
 	vec4 cubeMapColour = texture(cubeMapTex, reflectDir);
 
-	// TEXTURES
-	vec4 texColour1 = texture(tex1, texCoord);
-	vec4 texColour2 = texture(tex2, texCoord);
-	vec4 texColour = mix(texColour1, texColour2, 0.7);
-
-	//phongModel(normalize(normal), texColour);
 	if (drawSkyBox)
+		//fragColour = vec4(reflectDir, 1);
 		fragColour = cubeMapColour;
 	else {
+		// TEXTURES
+		vec4 texColour1 = texture(tex1, texCoord);
+		vec4 texColour2 = texture(tex2, texCoord);
+		vec4 texColour = mix(texColour1, texColour2, 0.7);
+
 		phongModel(normalize(normal), texColour);
 		//fragColour = mix(fragColour, cubeMapColour, 0.2);
 	}

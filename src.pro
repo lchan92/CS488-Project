@@ -6,9 +6,11 @@ QT += opengl widgets
 CONFIG += c++11
 QMAKE_CXXFLAGS += -W -Wall -g 
 LIBS += -lGLU -llua5.1 -lSDL -lSDL_mixer
+LIBS += -L$$PWD/assimp/usr/local/lib/ -lassimp
 TEMPLATE = app
 TARGET = game
 INCLUDEPATH += /usr/include/lua5.1
+QMAKE_LFLAGS += -Wl,--rpath=\\\$\$ORIGIN/assimp/usr/local/lib
 
 # Input
 HEADERS += algebra.hpp \
@@ -23,6 +25,7 @@ HEADERS += algebra.hpp \
            textures.hpp \
            lights.hpp \
            cubemap.hpp \
+           mesh.hpp \
            scene_lua.hpp \
            lua488.hpp
 SOURCES += algebra.cpp \
@@ -38,4 +41,5 @@ SOURCES += algebra.cpp \
            obstacle_map.cpp \
            lights.cpp \
            cubemap.cpp \
+           mesh.cpp \
            scene_lua.cpp

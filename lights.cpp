@@ -5,11 +5,11 @@ int Lights::index = 0;
 Lights::Lights() {
 	// camera light
 	createLight(QVector4D(0, 0, 0, 1),
-				QVector3D(1, 0.8, 0.5),
+				QVector3D(0, 0.3, 0.5),
 				QVector3D(1.0, 0.0, 0.0));
 	// other lights
 	createLight(QVector4D(0, 1000, 0,1),
-				QVector3D(0.3, 0.2, 0),
+				QVector3D(0.5, 0.3, 0),
 				QVector3D(1.0, 0.0, 0.0));
 }
 

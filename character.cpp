@@ -1,6 +1,7 @@
 #include "character.hpp"
 #include <iostream>
 #include "Viewer.hpp"
+#include "AppWindow.hpp"
 
 
 
@@ -24,6 +25,15 @@ void Character::setRoot(SceneNode* root) {
 void Character::setMapRoot(SceneNode* mapRoot) {
 	mMapRoot = mapRoot;
 }
+
+
+void Character::bind() {
+    mMesh = new Mesh();
+    mMesh->load("obj/robot/robot.obj");
+	
+	mMesh->bind();
+}
+
 
 
 
@@ -76,6 +86,7 @@ void Character::updateBoundingBox() {
 
 void Character::draw() {
 	mRoot->walk_gl();
+	AppWindow::m_viewer->draw_mesh(mMesh);
 }
 
 

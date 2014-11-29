@@ -16,10 +16,16 @@ bool Primitive::faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocity, 
 
 
 
+Block::Block() {
+	// CHANGE THIS LATER
+	mTextureIDs.push_back(1);
+	mTextureIDs.push_back(2);
+}
+
 Block::~Block() {}
 
 void Block::walk_gl(QMatrix4x4 transformMatrix) const {
-	AppWindow::m_viewer->draw_cube(transformMatrix);
+	AppWindow::m_viewer->draw_cube(transformMatrix, mTextureIDs);
 }
 
 void Block::setBoundaries(QMatrix4x4 transformMatrix) {

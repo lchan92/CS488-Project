@@ -17,6 +17,7 @@ public:
 
 class Block : public Primitive {
 public:
+	Block();
 	virtual ~Block();
 	virtual void walk_gl(QMatrix4x4 transformMatrix) const;
 	virtual void setBoundaries(QMatrix4x4 transformMatrix);
@@ -37,6 +38,7 @@ private:
 	bool betweenFrontBack(double z, double front, double back);
 
 	QVector4D mVertex1, mVertex2;
+	std::vector<int> mTextureIDs;
 };
 
 class Sphere : public Primitive {
