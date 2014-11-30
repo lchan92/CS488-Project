@@ -209,6 +209,7 @@ void Viewer::initializeGL() {
 
     // REFLECTIONS
     mDrawReflectionLocation = mProgram.uniformLocation("drawReflection");
+    mReflectFactorLocation = mProgram.uniformLocation("reflectFactor");
 }
 
 
@@ -230,6 +231,21 @@ void Viewer::paintGL() {
     mMap->draw();
 
     // REFLECTIONS
+    drawReflection();
+}
+
+void Viewer::drawSkyBox() {
+    QMatrix4x4 transformMatrix;
+    transformMatrix.scale(1000,1000,1000);
+    draw_sphere(transformMatrix);
+}
+
+void Viewer::drawReflection() {
+    QVector4D bottom = mPlayer->getBottom();
+
+    if (mCameraPosition.y() <= bottom.y())
+        return;
+
     glDisable(GL_DEPTH_TEST);
     glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 
@@ -609,11 +625,11 @@ QMatrix4x4 Viewer::getCameraMatrix() {
     QMatrix4x4 cameraInitialTransform;
     cameraInitialTransform.translate(0,mCameraHeight,20);
 
-    QVector3D cameraPosition = (mCameraTransformation * mCameraRotation * 
-                                cameraInitialTransform * mPlayer->getInitPosition()).toVector3D();
+    mCameraPosition = (mCameraTransformation * mCameraRotation * 
+                        cameraInitialTransform * mPlayer->getInitPosition()).toVector3D();
     QVector3D cameraUpDirection = QVector3D(0, 1, 0);
 
-    vMatrix.lookAt(cameraPosition, lookAtPosition, cameraUpDirection);
+    vMatrix.lookAt(mCameraPosition, lookAtPosition, cameraUpDirection);
 
     return mPerspMatrix * vMatrix * mTransformMatrix;
 }
@@ -622,17 +638,20 @@ void Viewer::draw_mesh(Mesh* mesh) {
     mProgram.bind();
 
     QMatrix4x4 transformMatrix = mesh->getTransform() * mesh->getRotationTransform();
+    
+    float reflectFactor;
     if (mDrawReflection) {
         QVector4D bottom = mesh->mVertex1;
 
         double jumpHeight;
-        if (!mPlayer->isOverBox(&jumpHeight)) {
+        if (!mPlayer->isOverBox(&jumpHeight, &reflectFactor)) {
             return; // don't render reflection if not over box
         }
 
         transformMatrix.translate(0, bottom.y()*2 - jumpHeight*2,0);
         transformMatrix.scale(1.0, -1.0, 1.0);
     }
+
 
     QMatrix4x4 modelViewMatrix = mTransformMatrix * transformMatrix;
     mProgram.setUniformValue(mMMatrixLocation, transformMatrix);
@@ -650,6 +669,7 @@ void Viewer::draw_mesh(Mesh* mesh) {
 
     // REFLECTIONS
     mProgram.setUniformValue(mDrawReflectionLocation, mDrawReflection);
+    mProgram.setUniformValue(mReflectFactorLocation, reflectFactor);
 
     Textures* textures = mesh->mTextures;
 
@@ -683,7 +703,7 @@ void Viewer::draw_mesh(Mesh* mesh) {
     }
 }
 
-void Viewer::draw_cube(QMatrix4x4 transformMatrix, std::vector<int> textureIndices) {
+void Viewer::draw_cube(QMatrix4x4 transformMatrix, std::vector<int> textureIndices, float reflectFactor) {
     mProgram.bind();
 
     mCubeBufferObject.bind();
@@ -714,6 +734,7 @@ void Viewer::draw_cube(QMatrix4x4 transformMatrix, std::vector<int> textureIndic
 
     // REFLECTIONS
     mProgram.setUniformValue(mDrawReflectionLocation, mDrawReflection);
+    mProgram.setUniformValue(mReflectFactorLocation, reflectFactor);
 
     // TEXTURE MAPPING
     for (int i = 0; i < textureIndices.size(); i++) {
@@ -763,10 +784,4 @@ void Viewer::draw_sphere(QMatrix4x4 transformMatrix) {
     glBindTexture(GL_TEXTURE_CUBE_MAP, mCubeMap->mTexID);
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 3200);
-}
-
-void Viewer::drawSkyBox() {
-    QMatrix4x4 transformMatrix;
-    transformMatrix.scale(1000,1000,1000);
-    draw_sphere(transformMatrix);
 }

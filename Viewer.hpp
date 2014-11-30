@@ -35,7 +35,7 @@ public:
     QSize sizeHint() const;
 
     void draw_mesh(Mesh* mesh);
-    void draw_cube(QMatrix4x4 transformMatrix, std::vector<int> textureIDs);
+    void draw_cube(QMatrix4x4 transformMatrix, std::vector<int> textureIDs, float reflectFactor);
     void draw_sphere(QMatrix4x4 transformMatrix);
 
     void setMapRoot(SceneNode* node);
@@ -70,6 +70,7 @@ protected:
 
 private:
     void drawSkyBox();
+    void drawReflection();
 
     QMatrix4x4 getCameraMatrix();
     void translateWorld(float x, float y, float z);
@@ -90,6 +91,7 @@ private:
 
     // mouse
     float mCameraHeight;
+    QVector3D mCameraPosition;
     QMatrix4x4 mCameraTransformation, mCameraRotation;
 
 
@@ -105,7 +107,7 @@ private:
     int mShadingLocation;
     int mDiffuseLocation, mSpecularLocation, mShininessLocation;
     int mMvpMatrixLocation, mMvMatrixLocation, mNormalMatrixLocation, mMMatrixLocation;
-    int mDrawSkyBoxLocation, mWorldCameraPosLocation, mDrawReflectionLocation;
+    int mDrawSkyBoxLocation, mWorldCameraPosLocation, mDrawReflectionLocation, mReflectFactorLocation;
     int mLightPositionLocation, mLightColourLocation, mLightFalloffLocation;
 
 

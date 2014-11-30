@@ -161,7 +161,9 @@ int gr_block_cmd(lua_State* L)
   data->node = 0;
   
   const char* name = luaL_checkstring(L, 1);
-  data->node = new GeometryNode(name, new Block());
+  int type = luaL_checknumber(L, 2);
+
+  data->node = new GeometryNode(name, new Block(type));
 
   luaL_getmetatable(L, "gr.node");
   lua_setmetatable(L, -2);

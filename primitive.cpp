@@ -14,22 +14,42 @@ bool Primitive::faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocity, 
 	return false;
 }
 
-bool Primitive::isOverBox(QVector4D p1, QVector4D p2, double* height) {
+bool Primitive::isOverBox(QVector4D p1, QVector4D p2, double* height, float* reflectFactor) {
 	return false;
 }
 
 
 
-Block::Block() {
-	// CHANGE THIS LATER
-	mTextureIDs.push_back(1);
-	mTextureIDs.push_back(2);
+Block::Block(int type) {
+	switch (type) {
+		case 0: { //wood
+			mReflectFactor = 0;
+
+			mTextureIDs.push_back(1);
+			mTextureIDs.push_back(3);
+			break;
+		}
+		case 1: { //glass
+			mReflectFactor = 0.5;
+
+			mTextureIDs.push_back(2);
+			mTextureIDs.push_back(3);
+			break;
+		}
+		default: {
+			mReflectFactor = 0;
+
+			mTextureIDs.push_back(1);
+			mTextureIDs.push_back(2);
+			break;
+		}
+	}
 }
 
 Block::~Block() {}
 
 void Block::walk_gl(QMatrix4x4 transformMatrix) const {
-	AppWindow::m_viewer->draw_cube(transformMatrix, mTextureIDs);
+	AppWindow::m_viewer->draw_cube(transformMatrix, mTextureIDs, mReflectFactor);
 }
 
 void Block::setBoundaries(QMatrix4x4 transformMatrix) {
@@ -72,13 +92,14 @@ bool Block::faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocity, int 
 	return false;
 }
 
-bool Block::isOverBox(QVector4D p1, QVector4D p2, double* height) {
+bool Block::isOverBox(QVector4D p1, QVector4D p2, double* height, float* reflectFactor) {
 	if ((betweenLeftRight(p1.x(), mVertex1.x(), mVertex2.x()) || 
 			betweenLeftRight(p2.x(), mVertex1.x(), mVertex2.x())) &&
 		(betweenFrontBack(p1.z(), mVertex1.z(), mVertex2.z()) ||
 			betweenFrontBack(p2.z(), mVertex1.z(), mVertex2.z())) &&
 		p1.y() >= mVertex2.y()) {
 		*height = p1.y() - mVertex2.y();
+		*reflectFactor = mReflectFactor;
 		return true;
 	}
 
@@ -226,6 +247,6 @@ bool Sphere::faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocity, int
 	return false;
 }
 
-bool Sphere::isOverBox(QVector4D p1, QVector4D p2, double* height) {
+bool Sphere::isOverBox(QVector4D p1, QVector4D p2, double* height, float* reflectFactor) {
 	return false;
 }

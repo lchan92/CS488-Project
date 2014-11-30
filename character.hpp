@@ -19,7 +19,8 @@ public:
 	QVector3D getPosition();
 	QVector4D getInitPosition();
 	QVector3D getCameraLookAtPosition();
-	bool isOverBox(double* height);
+	QVector4D getBottom();
+	bool isOverBox(double* height, float* reflectFactor);
 
 	void updatePosition();
 	void updateBoundingBox();

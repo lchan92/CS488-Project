@@ -64,6 +64,10 @@ QVector3D Character::getCameraLookAtPosition() {
 	}
 }
 
+QVector4D Character::getBottom() {
+	return mVertex1;
+}
+
 
 
 
@@ -89,8 +93,8 @@ bool Character::isAlive() {
 	return mAlive;
 }
 
-bool Character::isOverBox(double* height) {
-	return mMapRoot->isOverBox(mVertex1, mVertex2, height);
+bool Character::isOverBox(double* height, float* reflectFactor) {
+	return mMapRoot->isOverBox(mVertex1, mVertex2, height, reflectFactor);
 }
 
 

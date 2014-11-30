@@ -13,9 +13,10 @@ void Textures::load() {
 	// load texture sequentially   						INDEX
 	loadImage("textures/wood1.bmp", "BMP");			 	// 0
 	loadImage("textures/wood2.jpg", "JPG"); 			// 1
+	loadImage("textures/glass.jpg", "JPG");				// 2
 
-	loadImage("textures/abstract1.jpg", "JPG"); 		// 2
-	loadImage("textures/abstract2.jpg", "JPG");			// 3
+	loadImage("textures/abstract1.jpg", "JPG"); 		// 3
+
 }
 
 void Textures::loadImage(const char *imagePath, const char *fileType) {

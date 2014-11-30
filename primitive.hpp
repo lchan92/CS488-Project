@@ -11,20 +11,20 @@ public:
 	virtual void setBoundaries(QMatrix4x4 transformMatrix);
 
 	virtual bool faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocity, int direction);
-  	virtual bool isOverBox(QVector4D p1, QVector4D p2, double* height);
+  	virtual bool isOverBox(QVector4D p1, QVector4D p2, double* height, float* reflectFactor);
 
     static double EPSILON;
 };
 
 class Block : public Primitive {
 public:
-	Block();
+	Block(int type);
 	virtual ~Block();
 	virtual void walk_gl(QMatrix4x4 transformMatrix) const;
 	virtual void setBoundaries(QMatrix4x4 transformMatrix);
 
 	virtual bool faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocity, int direction);
-  	virtual bool isOverBox(QVector4D p1, QVector4D p2, double* height);
+  	virtual bool isOverBox(QVector4D p1, QVector4D p2, double* height, float* reflectFactor);
 
 
 private:
@@ -39,6 +39,7 @@ private:
 	bool betweenTopBottom(double y, double top, double bottom);
 	bool betweenFrontBack(double z, double front, double back);
 
+	double mReflectFactor;
 	QVector4D mVertex1, mVertex2;
 	std::vector<int> mTextureIDs;
 };
@@ -50,7 +51,7 @@ public:
 	virtual void setBoundaries(QMatrix4x4 transformMatrix);
 
 	virtual bool faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocity, int direction);
-  	virtual bool isOverBox(QVector4D p1, QVector4D p2, double* height);
+  	virtual bool isOverBox(QVector4D p1, QVector4D p2, double* height, float* reflectFactor);
 };
 
 #endif

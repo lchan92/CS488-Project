@@ -83,7 +83,7 @@ void main() {
 		//fragColour = mix(fragColour, cubeMapColour, 0.2);
 
 		if (drawReflection) {
-			fragColour = vec4(fragColour.xyz, 0.3);
+			fragColour = vec4(fragColour.xyz, reflectFactor);
 		}
 	}
 }

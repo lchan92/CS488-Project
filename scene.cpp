@@ -42,13 +42,13 @@ bool SceneNode::faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocity, 
     return result;
 }
 
-bool SceneNode::isOverBox(QVector4D p1, QVector4D p2, double* height) 
+bool SceneNode::isOverBox(QVector4D p1, QVector4D p2, double* height, float* reflectFactor) 
 {
     bool result = false;
 
     std::list<SceneNode*>::const_iterator it;
     for (it = m_children.begin(); it != m_children.end(); it++) {
-        result = (*it)->isOverBox(p1, p2, height) || result;
+        result = (*it)->isOverBox(p1, p2, height, reflectFactor) || result;
     }
 
     return result;
@@ -141,13 +141,13 @@ bool JointNode::faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocity, 
     return result;
 }
 
-bool JointNode::isOverBox(QVector4D p1, QVector4D p2, double* height) 
+bool JointNode::isOverBox(QVector4D p1, QVector4D p2, double* height, float* reflectFactor) 
 {
     bool result = false;
 
     std::list<SceneNode*>::const_iterator it;
     for (it = m_children.begin(); it != m_children.end(); it++) {
-        result = (*it)->isOverBox(p1, p2, height) || result;
+        result = (*it)->isOverBox(p1, p2, height, reflectFactor) || result;
     }
 
     return result;
@@ -214,7 +214,7 @@ bool GeometryNode::faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocit
   return m_primitive->faceIntersectsBox(p1, p2, velocity, direction);
 }
 
-bool GeometryNode::isOverBox(QVector4D p1, QVector4D p2, double* height)
+bool GeometryNode::isOverBox(QVector4D p1, QVector4D p2, double* height, float* reflectFactor)
 {
-  return m_primitive->isOverBox(p1, p2, height);
+  return m_primitive->isOverBox(p1, p2, height, reflectFactor);
 }
