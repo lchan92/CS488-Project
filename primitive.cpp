@@ -94,6 +94,12 @@ bool Block::faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocity, int 
 
 bool Block::isOverBox(QVector4D p1, QVector4D p2, int* face, double* distance, float* reflectFactor) {
 	bool result = false;
+
+	if (mReflectFactor == 0) {
+		return result;
+	}
+
+
 	double tempDistance;
 
 	// BACK

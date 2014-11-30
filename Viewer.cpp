@@ -638,6 +638,8 @@ void Viewer::draw_mesh(Mesh* mesh) {
     
     float reflectFactor;
     if (mDrawReflection) {
+        // IMPORTANT: THIS ONLY WORKS FOR THE CLOSEST REFLECTING BOX...
+        //            CAN'T DRAW MULTIPLE REFLECTIONS ON SEVERAL REFLECTING BOXES SIMULTANEOUSLY
 
         double distance;
         if (!mPlayer->isOverBox(&mReflectionType, &distance, &reflectFactor)) {
