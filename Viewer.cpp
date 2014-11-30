@@ -243,46 +243,6 @@ void Viewer::drawSkyBox() {
 }
 
 void Viewer::drawReflection() {
-    // switch(mReflectionType) {
-    //     case 0: {
-    //         // back
-
-    //         break;
-    //     }
-    //     case 1: {
-    //         // bottom
-
-    //         break;
-    //     } 
-    //     case 2: {
-    //         // left
-
-    //         break;
-    //     }
-    //     case 3: {
-    //         // right
-
-    //         break;
-    //     }
-    //     case 4: {
-    //         // top
-    //         QVector4D vertex = mPlayer->getVertex1();
-
-    //         if (mCameraPosition.y() <= vertex.y())
-    //             return;
-
-    //         break;
-    //     }
-    //     case 5: {
-    //         // front
-    //         break;
-    //     }
-    //     default:
-    //         break;
-    // }
-
-
-
     glDisable(GL_DEPTH_TEST);
     glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 
@@ -687,6 +647,9 @@ void Viewer::draw_mesh(Mesh* mesh) {
         switch(mReflectionType) {
             case 0: {
                 // back
+                if (mCameraPosition.z() > mPlayer->getVertex1().z())
+                    return;
+
                 double shift = mesh->mVertex1.z() - mesh->mVertex2.z();
                 transformMatrix.scale(1, 1, -1);
                 transformMatrix.translate(0, 0, shift + distance*2);
@@ -694,12 +657,18 @@ void Viewer::draw_mesh(Mesh* mesh) {
             }
             case 1: {
                 // bottom
+                if (mCameraPosition.y() > mPlayer->getVertex2().y())
+                    return;
+
                 transformMatrix.translate(0, distance*2, 0);
                 transformMatrix.scale(1, -1, 1);
                 break;
             }
             case 2: {
                 // left
+                if (mCameraPosition.x() > mPlayer->getVertex2().x())
+                    return;
+
                 double shift = mesh->mVertex2.x() - mesh->mVertex1.x();
                 transformMatrix.scale(-1, 1, 1);
                 transformMatrix.translate(shift + distance*2, 0, 0);
@@ -707,6 +676,9 @@ void Viewer::draw_mesh(Mesh* mesh) {
             }
             case 3: {
                 // right
+                if (mCameraPosition.x() < mPlayer->getVertex1().x())
+                    return;
+
                 double shift = mesh->mVertex2.x() - mesh->mVertex1.x();
                 transformMatrix.scale(-1, 1, 1);
                 transformMatrix.translate(-shift - distance*2, 0, 0);
@@ -714,6 +686,9 @@ void Viewer::draw_mesh(Mesh* mesh) {
             }
             case 4: {   
                 // top  
+                if (mCameraPosition.y() < mPlayer->getVertex1().y())
+                    return;
+
                 QVector4D vertex = mesh->mVertex1;   
                 transformMatrix.translate(0, vertex.y()*2 - distance*2,0);
                 transformMatrix.scale(1, -1, 1);
@@ -721,6 +696,9 @@ void Viewer::draw_mesh(Mesh* mesh) {
             }
             case 5: {
                 // front
+                if (mCameraPosition.z() < mPlayer->getVertex2().z())
+                    return;
+
                 double shift = mesh->mVertex1.z() - mesh->mVertex2.z();
                 transformMatrix.scale(1, 1, -1);
                 transformMatrix.translate(0, 0, - shift - distance*2);
