@@ -60,6 +60,11 @@ QVector3D Character::getPosition() {
 	return mPosition.toVector3D();
 }
 
+QVector4D Character::getInitPosition() {
+	return mMesh->mInitPosition;
+}
+
+
 
 
 void Character::rotateY(float amount) {

@@ -30,6 +30,8 @@ Viewer::Viewer(const QGLFormat& format, QWidget *parent)
     mLeftFlag = false;
     mRightFlag = false;
 
+    mCameraHeight = 10.0f;
+
     cubeSetup();
     sphereSetup();
 
@@ -259,8 +261,15 @@ void Viewer::mouseMoveEvent(QMouseEvent *event) {
         return;
 
     float deltaX = mouseMove.x();
+    float deltaY = mouseMove.y();
     // mPlayer->rotateY(-deltaX/10);
-    mCameraTransformation.rotate(-deltaX/10, 0, 1, 0);
+
+
+    mCameraRotation.rotate(-deltaX/10, 0, 1, 0);
+
+    mCameraHeight += deltaY/10;
+    if (mCameraHeight > 15) mCameraHeight = 15;
+    else if (mCameraHeight < -10) mCameraHeight = -10;
 
     cursor().setPos(center);
 }
@@ -536,10 +545,11 @@ QMatrix4x4 Viewer::getCameraMatrix() {
     QMatrix4x4 vMatrix;
     QVector3D modelPosition = mPlayer->getPosition();
 
-    QMatrix4x4 cameraTransformation = mCameraTransformation;
-    cameraTransformation.translate(0,10,20);
+    QMatrix4x4 cameraInitialTransform;
+    cameraInitialTransform.translate(0,mCameraHeight,20);
 
-    QVector3D cameraPosition = (cameraTransformation * QVector4D(0,0,0,1)).toVector3D();
+    QVector3D cameraPosition = (mCameraTransformation * mCameraRotation * 
+                                cameraInitialTransform * mPlayer->getInitPosition()).toVector3D();
     QVector3D cameraUpDirection = QVector3D(0, 1, 0);
 
     vMatrix.lookAt(cameraPosition, modelPosition, cameraUpDirection);

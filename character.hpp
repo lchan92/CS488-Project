@@ -17,6 +17,7 @@ public:
 	void draw();
 
 	QVector3D getPosition();
+	QVector4D getInitPosition();
 
 	void updatePosition();
 	void updateBoundingBox();

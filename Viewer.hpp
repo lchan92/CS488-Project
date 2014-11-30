@@ -89,7 +89,8 @@ private:
     bool mDrawSkyBox;
 
     // mouse
-    QMatrix4x4 mCameraTransformation;
+    float mCameraHeight;
+    QMatrix4x4 mCameraTransformation, mCameraRotation;
 
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 1, 0))
