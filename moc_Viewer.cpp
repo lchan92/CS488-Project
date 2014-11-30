@@ -87,6 +87,8 @@ void *Viewer::qt_metacast(const char *_clname)
     if (!_clname) return 0;
     if (!strcmp(_clname, qt_meta_stringdata_Viewer.stringdata))
         return static_cast<void*>(const_cast< Viewer*>(this));
+    if (!strcmp(_clname, "QOpenGLFunctions"))
+        return static_cast< QOpenGLFunctions*>(const_cast< Viewer*>(this));
     return QGLWidget::qt_metacast(_clname);
 }
 

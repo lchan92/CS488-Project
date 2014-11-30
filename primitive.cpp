@@ -14,6 +14,10 @@ bool Primitive::faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocity, 
 	return false;
 }
 
+bool Primitive::isOverBox(QVector4D p1, QVector4D p2, double* height) {
+	return false;
+}
+
 
 
 Block::Block() {
@@ -67,6 +71,22 @@ bool Block::faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocity, int 
 
 	return false;
 }
+
+bool Block::isOverBox(QVector4D p1, QVector4D p2, double* height) {
+	if ((betweenLeftRight(p1.x(), mVertex1.x(), mVertex2.x()) || 
+			betweenLeftRight(p2.x(), mVertex1.x(), mVertex2.x())) &&
+		(betweenFrontBack(p1.z(), mVertex1.z(), mVertex2.z()) ||
+			betweenFrontBack(p2.z(), mVertex1.z(), mVertex2.z())) &&
+		p1.y() >= mVertex2.y()) {
+		*height = p1.y() - mVertex2.y();
+		return true;
+	}
+
+	return false;
+}
+
+
+
 
 bool Block::betweenLeftRight(double x, double left, double right) {
 	if (x <= left) return false;
@@ -206,4 +226,6 @@ bool Sphere::faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocity, int
 	return false;
 }
 
-
+bool Sphere::isOverBox(QVector4D p1, QVector4D p2, double* height) {
+	return false;
+}

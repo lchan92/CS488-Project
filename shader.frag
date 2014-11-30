@@ -20,6 +20,7 @@ uniform sampler2D tex1;
 uniform sampler2D tex2;
 
 uniform bool drawSkyBox;
+uniform bool drawReflection;
 uniform float reflectFactor;
 uniform vec4 materialColour;
 
@@ -80,5 +81,9 @@ void main() {
 
 		phongModel(normalize(normal), texColour);
 		//fragColour = mix(fragColour, cubeMapColour, 0.2);
+
+		if (drawReflection) {
+			fragColour = vec4(fragColour.xyz, 0.3);
+		}
 	}
 }

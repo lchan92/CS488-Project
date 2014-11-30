@@ -15,6 +15,8 @@ Sounds* Viewer::mSounds = NULL;
 Textures* Viewer::mTextures = NULL;
 Lights* Viewer::mLights = NULL;
 CubeMap* Viewer::mCubeMap = NULL;
+Character* Viewer::mPlayer = NULL;
+ObstacleMap* Viewer::mMap = NULL;
 
 
 Viewer::Viewer(const QGLFormat& format, QWidget *parent) 
@@ -63,6 +65,8 @@ QSize Viewer::sizeHint() const {
 }
 
 void Viewer::initializeGL() {
+    initializeOpenGLFunctions();
+
     QGLFormat glFormat = QGLWidget::format();
     if (!glFormat.sampleBuffers()) {
         std::cerr << "Could not enable sample buffers." << std::endl;
@@ -202,6 +206,9 @@ void Viewer::initializeGL() {
     mLightPositionLocation = mProgram.uniformLocation("lightPositions");
     mLightColourLocation = mProgram.uniformLocation("lightColours");
     mLightFalloffLocation = mProgram.uniformLocation("lightFalloffs");
+
+    // REFLECTIONS
+    mDrawReflectionLocation = mProgram.uniformLocation("drawReflection");
 }
 
 
@@ -213,7 +220,7 @@ void Viewer::initializeGL() {
 
 void Viewer::paintGL() {
     // Clear framebuffer
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     
     mDrawSkyBox = true;
     drawSkyBox();
@@ -221,6 +228,37 @@ void Viewer::paintGL() {
 
     mPlayer->draw();
     mMap->draw();
+
+    // REFLECTIONS
+    glDisable(GL_DEPTH_TEST);
+    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+
+    glEnable(GL_STENCIL_TEST);
+    glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
+    glStencilFunc(GL_ALWAYS, 1, 0xffffffff);
+
+    mDrawTopFaces = true;
+    mMap->draw();
+    mDrawTopFaces = false;
+
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    glEnable(GL_DEPTH_TEST);
+
+    glStencilFunc(GL_EQUAL, 1, 0xffffffff);
+    glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+
+
+    glEnable(GL_BLEND);
+    glDisable(GL_DEPTH_TEST);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    mDrawReflection = true;
+    mPlayer->draw();
+    mDrawReflection = false;
+
+    glEnable(GL_DEPTH_TEST);
+    glDisable(GL_BLEND);
+
+    glDisable(GL_STENCIL_TEST);
 }
 
 
@@ -361,6 +399,7 @@ void Viewer::updatePositions() {
     
     if (mPlayer->isAlive())
         mCameraTransformation.translate(0,velocity,0);
+
 
     mLights->mPositions[0] += QVector4D(0,velocity,0,0);
 
@@ -583,6 +622,18 @@ void Viewer::draw_mesh(Mesh* mesh) {
     mProgram.bind();
 
     QMatrix4x4 transformMatrix = mesh->getTransform() * mesh->getRotationTransform();
+    if (mDrawReflection) {
+        QVector4D bottom = mesh->mVertex1;
+
+        double jumpHeight;
+        if (!mPlayer->isOverBox(&jumpHeight)) {
+            return; // don't render reflection if not over box
+        }
+
+        transformMatrix.translate(0, bottom.y()*2 - jumpHeight*2,0);
+        transformMatrix.scale(1.0, -1.0, 1.0);
+    }
+
     QMatrix4x4 modelViewMatrix = mTransformMatrix * transformMatrix;
     mProgram.setUniformValue(mMMatrixLocation, transformMatrix);
     mProgram.setUniformValue(mMvMatrixLocation, modelViewMatrix);
@@ -597,6 +648,8 @@ void Viewer::draw_mesh(Mesh* mesh) {
     // CUBEMAP
     mProgram.setUniformValue(mDrawSkyBoxLocation, mDrawSkyBox);
 
+    // REFLECTIONS
+    mProgram.setUniformValue(mDrawReflectionLocation, mDrawReflection);
 
     Textures* textures = mesh->mTextures;
 
@@ -659,6 +712,9 @@ void Viewer::draw_cube(QMatrix4x4 transformMatrix, std::vector<int> textureIndic
     // CUBEMAP
     mProgram.setUniformValue(mDrawSkyBoxLocation, mDrawSkyBox);
 
+    // REFLECTIONS
+    mProgram.setUniformValue(mDrawReflectionLocation, mDrawReflection);
+
     // TEXTURE MAPPING
     for (int i = 0; i < textureIndices.size(); i++) {
         glActiveTexture(GL_TEXTURE1 + i);
@@ -668,7 +724,11 @@ void Viewer::draw_cube(QMatrix4x4 transformMatrix, std::vector<int> textureIndic
         glBindTexture(GL_TEXTURE_2D, mTextures->mIDs[index]);
     }
 
-    glDrawArrays(GL_TRIANGLES, 0, 36);
+    if (mDrawTopFaces) {
+        glDrawArrays(GL_TRIANGLES, 24, 6);
+    } else {
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+    }
 }
 
 void Viewer::draw_sphere(QMatrix4x4 transformMatrix) {

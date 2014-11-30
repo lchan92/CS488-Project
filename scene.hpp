@@ -17,6 +17,7 @@ public:
   virtual void setBoundaries(QMatrix4x4 transformMatrix = QMatrix4x4()) const;
 
   virtual bool faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocity, int direction);
+  virtual bool isOverBox(QVector4D p1, QVector4D p2, double* height);
 
   const QMatrix4x4& get_transform() const { return m_trans; }
   const QMatrix4x4& get_inverse() const { return m_invtrans; }
@@ -84,6 +85,7 @@ public:
   virtual void setBoundaries(QMatrix4x4 transformMatrix = QMatrix4x4()) const;
 
   virtual bool faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocity, int direction);
+  virtual bool isOverBox(QVector4D p1, QVector4D p2, double* height);
 
   void set_joint_x(double min, double init, double max);
   void set_joint_y(double min, double init, double max);
@@ -114,7 +116,8 @@ public:
   virtual void setBoundaries(QMatrix4x4 transformMatrix = QMatrix4x4()) const;
 
   virtual bool faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocity, int direction);
-  
+  virtual bool isOverBox(QVector4D p1, QVector4D p2, double* height);  
+
   const Material* get_material() const;
   Material* get_material();
 

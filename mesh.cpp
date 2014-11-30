@@ -227,7 +227,7 @@ QMatrix4x4 Mesh::getRotationTransform() {
 	return mRotateTransform;
 }
 
+
 void Mesh::translate(QVector3D amount) {
 	mTransform.translate(amount.x(), amount.y(), amount.z());
 }
-

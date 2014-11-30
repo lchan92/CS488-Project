@@ -36,12 +36,6 @@ void Character::bind() {
 
 
 
-void Character::updateBoundingBox() {
-	mVertex1 = mMesh->getTransform() * mMesh->mVertex1;
-	mVertex2 = mMesh->getTransform() * mMesh->mVertex2;
-}
-
-
 
 void Character::draw() {
 	AppWindow::m_viewer->draw_mesh(mMesh);
@@ -49,14 +43,9 @@ void Character::draw() {
 
 
 
-void Character::updatePosition() {
-	mPosition = mMesh->getTransform() * mMesh->mInitPosition;
-	updateBoundingBox();
 
-	if (mPosition.y() <= DEATH_HEIGHT) {
-		mAlive = false;
-	}
-}
+
+
 
 QVector3D Character::getPosition() {
 	return mPosition.toVector3D();
@@ -75,8 +64,33 @@ QVector3D Character::getCameraLookAtPosition() {
 	}
 }
 
+
+
+
+
+
+void Character::updatePosition() {
+	mPosition = mMesh->getTransform() * mMesh->mInitPosition;
+	updateBoundingBox();
+
+	if (mPosition.y() <= DEATH_HEIGHT) {
+		mAlive = false;
+	}
+}
+
+void Character::updateBoundingBox() {
+	mVertex1 = mMesh->getTransform() * mMesh->mVertex1;
+	mVertex2 = mMesh->getTransform() * mMesh->mVertex2;
+}
+
+
+
 bool Character::isAlive() {
 	return mAlive;
+}
+
+bool Character::isOverBox(double* height) {
+	return mMapRoot->isOverBox(mVertex1, mVertex2, height);
 }
 
 

@@ -23,7 +23,7 @@
 #include "mesh.hpp"
 
 
-class Viewer : public QGLWidget {
+class Viewer : public QGLWidget, protected QOpenGLFunctions {
     
     Q_OBJECT
 
@@ -44,6 +44,8 @@ public:
     static CubeMap* mCubeMap;
     static Textures* mTextures;
     static Lights* mLights;
+    static Character* mPlayer;
+    static ObstacleMap* mMap;
 
 public slots:
     void updatePositions();
@@ -80,13 +82,11 @@ private:
     std::vector<GLfloat> mCubeVerts, mCubeNormals, mCubeUVCoords;
     std::vector<GLfloat> mSphereVerts, mSphereNormals;
 
-    Character *mPlayer;
-    ObstacleMap *mMap;
 
     bool mLeftFlag, mRightFlag, mForwardFlag, mBackwardFlag;
     int mJumpCount;
 
-    bool mDrawSkyBox;
+    bool mDrawSkyBox, mDrawReflection, mDrawTopFaces;
 
     // mouse
     float mCameraHeight;
@@ -105,7 +105,7 @@ private:
     int mShadingLocation;
     int mDiffuseLocation, mSpecularLocation, mShininessLocation;
     int mMvpMatrixLocation, mMvMatrixLocation, mNormalMatrixLocation, mMMatrixLocation;
-    int mDrawSkyBoxLocation, mWorldCameraPosLocation;
+    int mDrawSkyBoxLocation, mWorldCameraPosLocation, mDrawReflectionLocation;
     int mLightPositionLocation, mLightColourLocation, mLightFalloffLocation;
 
 

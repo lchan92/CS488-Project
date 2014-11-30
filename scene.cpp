@@ -42,6 +42,19 @@ bool SceneNode::faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocity, 
     return result;
 }
 
+bool SceneNode::isOverBox(QVector4D p1, QVector4D p2, double* height) 
+{
+    bool result = false;
+
+    std::list<SceneNode*>::const_iterator it;
+    for (it = m_children.begin(); it != m_children.end(); it++) {
+        result = (*it)->isOverBox(p1, p2, height) || result;
+    }
+
+    return result;
+}
+
+
 
 
 void SceneNode::rotate(char axis, double angle)
@@ -128,6 +141,20 @@ bool JointNode::faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocity, 
     return result;
 }
 
+bool JointNode::isOverBox(QVector4D p1, QVector4D p2, double* height) 
+{
+    bool result = false;
+
+    std::list<SceneNode*>::const_iterator it;
+    for (it = m_children.begin(); it != m_children.end(); it++) {
+        result = (*it)->isOverBox(p1, p2, height) || result;
+    }
+
+    return result;
+}
+
+
+
 
 
 void JointNode::set_joint_x(double min, double init, double max)
@@ -184,5 +211,10 @@ void GeometryNode::setBoundaries(QMatrix4x4 transformMatrix) const
 
 bool GeometryNode::faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocity, int direction) 
 {
-    return m_primitive->faceIntersectsBox(p1, p2, velocity, direction);
+  return m_primitive->faceIntersectsBox(p1, p2, velocity, direction);
+}
+
+bool GeometryNode::isOverBox(QVector4D p1, QVector4D p2, double* height)
+{
+  return m_primitive->isOverBox(p1, p2, height);
 }
