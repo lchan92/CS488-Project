@@ -30,7 +30,7 @@ Block::Block(int type) {
 			break;
 		}
 		case 1: { //glass
-			mReflectFactor = 0.5;
+			mReflectFactor = 0.3;
 
 			mTextureIDs.push_back(2);
 			mTextureIDs.push_back(3);
