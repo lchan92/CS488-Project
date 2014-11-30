@@ -14,7 +14,7 @@ Lights::Lights() {
 				QVector3D(1.0, 0.0, 0.0));
 	// water light
 	createLight(QVector4D(0,-500, 500,1),
-				QVector3D(0, 0, 1),
+				QVector3D(0, 0.2, 0.7),
 				QVector3D(1.0, 0.0, 0.0));
 }
 

@@ -24,6 +24,7 @@ Viewer::Viewer(const QGLFormat& format, QWidget *parent)
     setMouseTracking(true);
     setCursor(Qt::BlankCursor);
 
+
     //FLAGS
     mForwardFlag = false;
     mBackwardFlag = false;
@@ -51,9 +52,7 @@ Viewer::Viewer(const QGLFormat& format, QWidget *parent)
 
 }
 
-Viewer::~Viewer() {
-    // Nothing to do here right now.
-}
+Viewer::~Viewer() {}
 
 QSize Viewer::minimumSizeHint() const {
     return QSize(50, 50);
@@ -74,6 +73,7 @@ void Viewer::initializeGL() {
     glClearColor( 0.4, 0.4, 0.4, 0.0 );
     glEnable(GL_DEPTH_TEST);
 
+
     if (!mProgram.addShaderFromSourceFile(QGLShader::Vertex, "shader.vert")) {
         std::cerr << "Cannot load vertex shader." << std::endl;
         return;
@@ -83,6 +83,7 @@ void Viewer::initializeGL() {
         std::cerr << "Cannot load fragment shader." << std::endl;
         return;
     }
+
 
     if ( !mProgram.link() ) {
         std::cerr << "Cannot link shaders." << std::endl;
@@ -206,17 +207,26 @@ void Viewer::initializeGL() {
 
 
 
+
+
+
+
 void Viewer::paintGL() {
     // Clear framebuffer
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+    
     mDrawSkyBox = true;
     drawSkyBox();
-
     mDrawSkyBox = false;
+
     mPlayer->draw();
     mMap->draw();
 }
+
+
+
+
+
 
 
 
@@ -248,11 +258,9 @@ void Viewer::scaleWorld(float x, float y, float z) {
 
 
 
-void Viewer::mousePressEvent(QMouseEvent *event) {
-}
+void Viewer::mousePressEvent(QMouseEvent *event) {}
 
-void Viewer::mouseReleaseEvent(QMouseEvent *event) {
-}
+void Viewer::mouseReleaseEvent(QMouseEvent *event) {}
 
 void Viewer::mouseMoveEvent(QMouseEvent *event) {
     QPoint center = mapToGlobal(rect().center());
@@ -350,13 +358,18 @@ void Viewer::updatePositions() {
     double velocity;
 
     bool onSurface = mPlayer->applyGravity(&velocity);
-    mCameraTransformation.translate(0,velocity,0);
+    
+    if (mPlayer->isAlive())
+        mCameraTransformation.translate(0,velocity,0);
 
     mLights->mPositions[0] += QVector4D(0,velocity,0,0);
 
     if (mForwardFlag) {
         mPlayer->walkForward(&velocity);
-        mCameraTransformation.translate(0,0,velocity);
+
+        if (mPlayer->isAlive()) 
+            mCameraTransformation.translate(0,0,velocity);
+
         mLights->mPositions[0] += QVector4D(0,0,velocity,0);
         
         if (onSurface) {
@@ -364,7 +377,10 @@ void Viewer::updatePositions() {
         }
     } else if (mBackwardFlag) {
         mPlayer->walkBackward(&velocity);
-        mCameraTransformation.translate(0,0,velocity);
+
+        if (mPlayer->isAlive()) 
+            mCameraTransformation.translate(0,0,velocity);
+
         mLights->mPositions[0] += QVector4D(0,0,velocity,0);
         
         if (onSurface) {
@@ -374,7 +390,10 @@ void Viewer::updatePositions() {
 
     if (mLeftFlag) {
         mPlayer->strafeLeft(&velocity);
-        mCameraTransformation.translate(velocity,0,0);
+
+        if (mPlayer->isAlive())
+            mCameraTransformation.translate(velocity,0,0);
+        
         mLights->mPositions[0] += QVector4D(velocity,0,0,0);
 
         if (onSurface) {
@@ -382,7 +401,10 @@ void Viewer::updatePositions() {
         }
     } else if (mRightFlag) {
         mPlayer->strafeRight(&velocity);
-        mCameraTransformation.translate(velocity,0,0);
+        
+        if (mPlayer->isAlive()) 
+            mCameraTransformation.translate(velocity,0,0);
+        
         mLights->mPositions[0] += QVector4D(velocity,0,0,0);
 
         if (onSurface) {
@@ -543,7 +565,7 @@ void Viewer::sphereSetup() {
 
 QMatrix4x4 Viewer::getCameraMatrix() {
     QMatrix4x4 vMatrix;
-    QVector3D modelPosition = mPlayer->getPosition();
+    QVector3D lookAtPosition = mPlayer->getCameraLookAtPosition();
 
     QMatrix4x4 cameraInitialTransform;
     cameraInitialTransform.translate(0,mCameraHeight,20);
@@ -552,7 +574,7 @@ QMatrix4x4 Viewer::getCameraMatrix() {
                                 cameraInitialTransform * mPlayer->getInitPosition()).toVector3D();
     QVector3D cameraUpDirection = QVector3D(0, 1, 0);
 
-    vMatrix.lookAt(cameraPosition, modelPosition, cameraUpDirection);
+    vMatrix.lookAt(cameraPosition, lookAtPosition, cameraUpDirection);
 
     return mPerspMatrix * vMatrix * mTransformMatrix;
 }

@@ -7,7 +7,7 @@ in vec2 texCoord;
 in vec3 reflectDir;
 
 
-const int NUM_LIGHTS = 2;
+const int NUM_LIGHTS = 3;
 uniform vec4 lightPositions[NUM_LIGHTS];
 uniform vec3 lightColours[NUM_LIGHTS];
 uniform vec3 lightFalloffs[NUM_LIGHTS];

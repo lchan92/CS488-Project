@@ -18,9 +18,13 @@ public:
 
 	QVector3D getPosition();
 	QVector4D getInitPosition();
+	QVector3D getCameraLookAtPosition();
 
 	void updatePosition();
 	void updateBoundingBox();
+
+	bool isAlive();
+
 
 	// movement functions
 	void rotateY(float amount);
@@ -36,8 +40,10 @@ private:
 	// constants
 	int MAX_JUMPS;
 	float GRAVITY;
+	float DEATH_HEIGHT;
 
 	int mJumpCount;
+	bool mAlive;
 
 	//PHYSICS
 	float mVerticalVelocity;

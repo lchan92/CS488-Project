@@ -8,8 +8,10 @@
 Character::Character() {
 	MAX_JUMPS = 2000;
 	GRAVITY = -0.02f;
+	DEATH_HEIGHT = -50;
 
 	mJumpCount = 0;
+	mAlive = true;
 
 	mVerticalVelocity = 0.0f;
 }
@@ -42,11 +44,7 @@ void Character::updateBoundingBox() {
 
 
 void Character::draw() {
-	// mRoot->walk_gl();
 	AppWindow::m_viewer->draw_mesh(mMesh);
-	// std::vector<int> textureIndices;
-	// textureIndices.push_back(3);
-	// AppWindow::m_viewer->draw_cube(mMesh->getTransform(), textureIndices);
 }
 
 
@@ -54,6 +52,10 @@ void Character::draw() {
 void Character::updatePosition() {
 	mPosition = mMesh->getTransform() * mMesh->mInitPosition;
 	updateBoundingBox();
+
+	if (mPosition.y() <= DEATH_HEIGHT) {
+		mAlive = false;
+	}
 }
 
 QVector3D Character::getPosition() {
@@ -62,6 +64,19 @@ QVector3D Character::getPosition() {
 
 QVector4D Character::getInitPosition() {
 	return mMesh->mInitPosition;
+}
+
+QVector3D Character::getCameraLookAtPosition() {
+	if (mAlive) {
+		return getPosition();
+	} else {
+		QVector3D pos = QVector3D(mPosition.x(), DEATH_HEIGHT, mPosition.z());
+		return pos;
+	}
+}
+
+bool Character::isAlive() {
+	return mAlive;
 }
 
 
