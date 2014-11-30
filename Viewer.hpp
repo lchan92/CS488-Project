@@ -85,9 +85,9 @@ private:
 
 
     bool mLeftFlag, mRightFlag, mForwardFlag, mBackwardFlag;
-    int mJumpCount;
+    int mJumpCount, mReflectionType;
 
-    bool mDrawSkyBox, mDrawReflection, mDrawTopFaces;
+    bool mDrawSkyBox, mDrawReflection, mDrawStencil;
 
     // mouse
     float mCameraHeight;

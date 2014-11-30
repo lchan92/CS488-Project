@@ -14,7 +14,7 @@ bool Primitive::faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocity, 
 	return false;
 }
 
-bool Primitive::isOverBox(QVector4D p1, QVector4D p2, double* height, float* reflectFactor) {
+bool Primitive::isOverBox(QVector4D p1, QVector4D p2, int* face, double* distance, float* reflectFactor) {
 	return false;
 }
 
@@ -92,19 +92,121 @@ bool Block::faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocity, int 
 	return false;
 }
 
-bool Block::isOverBox(QVector4D p1, QVector4D p2, double* height, float* reflectFactor) {
+bool Block::isOverBox(QVector4D p1, QVector4D p2, int* face, double* distance, float* reflectFactor) {
+	bool result = false;
+	double tempDistance;
+
+	// BACK
+	if ((betweenLeftRight(p1.x(), mVertex1.x(), mVertex2.x()) || 
+			betweenLeftRight(p2.x(), mVertex1.x(), mVertex2.x())) &&
+		(betweenTopBottom(p1.y(), mVertex2.y(), mVertex1.y()) ||
+			betweenTopBottom(p2.y(), mVertex2.y(), mVertex1.y())) &&
+		p1.z() <= mVertex2.z()) {
+		*face = 0;
+
+		tempDistance = mVertex2.z() - p1.z();
+		if (result)
+			*distance = tempDistance < *distance? tempDistance : *distance;
+		else
+			*distance = tempDistance;
+	
+		result = true;
+	}
+
+	// BOTTOM
+	if ((betweenLeftRight(p1.x(), mVertex1.x(), mVertex2.x()) || 
+			betweenLeftRight(p2.x(), mVertex1.x(), mVertex2.x())) &&
+		(betweenFrontBack(p1.z(), mVertex1.z(), mVertex2.z()) ||
+			betweenFrontBack(p2.z(), mVertex1.z(), mVertex2.z())) &&
+		p2.y() <= mVertex1.y()) {
+		*face = 1;
+
+		tempDistance = mVertex1.y() - p2.y();
+		if (result)
+			*distance = tempDistance < *distance? tempDistance : *distance;
+		else
+			*distance = tempDistance;
+
+		result = true;
+	}
+
+	// LEFT
+	if ((betweenTopBottom(p1.y(), mVertex2.y(), mVertex1.y()) ||
+			betweenTopBottom(p2.y(), mVertex2.y(), mVertex1.y())) &&
+		(betweenFrontBack(p1.z(), mVertex1.z(), mVertex2.z()) ||
+			betweenFrontBack(p2.z(), mVertex1.z(), mVertex2.z())) &&
+		p2.x() <= mVertex1.x()) {
+		*face = 2;
+
+		tempDistance = mVertex1.x() - p2.x();
+		if (result)
+			*distance = tempDistance < *distance? tempDistance : *distance;
+		else
+			*distance = tempDistance;
+
+		result = true;
+	}
+
+	// RIGHT
+	if ((betweenTopBottom(p1.y(), mVertex2.y(), mVertex1.y()) ||
+			betweenTopBottom(p2.y(), mVertex2.y(), mVertex1.y())) &&
+		(betweenFrontBack(p1.z(), mVertex1.z(), mVertex2.z()) ||
+			betweenFrontBack(p2.z(), mVertex1.z(), mVertex2.z())) &&
+		p1.x() >= mVertex2.x()) {
+		*face = 3;
+
+		tempDistance = p1.x() - mVertex2.x();
+		if (result)
+			*distance = tempDistance < *distance? tempDistance : *distance;
+		else
+			*distance = tempDistance;
+
+		result = true;
+	}
+
+	// TOP
 	if ((betweenLeftRight(p1.x(), mVertex1.x(), mVertex2.x()) || 
 			betweenLeftRight(p2.x(), mVertex1.x(), mVertex2.x())) &&
 		(betweenFrontBack(p1.z(), mVertex1.z(), mVertex2.z()) ||
 			betweenFrontBack(p2.z(), mVertex1.z(), mVertex2.z())) &&
 		p1.y() >= mVertex2.y()) {
-		*height = p1.y() - mVertex2.y();
-		*reflectFactor = mReflectFactor;
-		return true;
+		*face = 4;
+		
+		tempDistance = p1.y() - mVertex2.y();
+		if (result)
+			*distance = tempDistance < *distance? tempDistance : *distance;
+		else
+			*distance = tempDistance;
+
+		result = true;
 	}
 
-	return false;
+	// FRONT
+	if ((betweenLeftRight(p1.x(), mVertex1.x(), mVertex2.x()) || 
+			betweenLeftRight(p2.x(), mVertex1.x(), mVertex2.x())) &&
+		(betweenTopBottom(p1.y(), mVertex2.y(), mVertex1.y()) ||
+			betweenTopBottom(p2.y(), mVertex2.y(), mVertex1.y())) &&
+		p2.z() >= mVertex1.z()) {
+		*face = 5;
+
+		tempDistance = p2.z() - mVertex1.z();
+		if (result)
+			*distance = tempDistance < *distance? tempDistance : *distance;
+		else
+			*distance = tempDistance;
+
+		result = true;
+	}
+
+
+	if (result)
+		*reflectFactor = mReflectFactor;
+
+	return result;
 }
+
+
+
 
 
 
@@ -247,6 +349,6 @@ bool Sphere::faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocity, int
 	return false;
 }
 
-bool Sphere::isOverBox(QVector4D p1, QVector4D p2, double* height, float* reflectFactor) {
+bool Sphere::isOverBox(QVector4D p1, QVector4D p2, int* face, double* distance, float* reflectFactor) {
 	return false;
 }

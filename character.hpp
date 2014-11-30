@@ -19,13 +19,16 @@ public:
 	QVector3D getPosition();
 	QVector4D getInitPosition();
 	QVector3D getCameraLookAtPosition();
-	QVector4D getBottom();
-	bool isOverBox(double* height, float* reflectFactor);
+	QVector4D getVertex1();
+	QVector4D getVertex2();
+
 
 	void updatePosition();
 	void updateBoundingBox();
 
+
 	bool isAlive();
+	bool isOverBox(int* face, double* height, float* reflectFactor);
 
 
 	// movement functions

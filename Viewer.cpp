@@ -32,6 +32,8 @@ Viewer::Viewer(const QGLFormat& format, QWidget *parent)
     mBackwardFlag = false;
     mLeftFlag = false;
     mRightFlag = false;
+    mDrawStencil = false;
+    mDrawReflection = false;
 
     mCameraHeight = 10.0f;
 
@@ -236,15 +238,50 @@ void Viewer::paintGL() {
 
 void Viewer::drawSkyBox() {
     QMatrix4x4 transformMatrix;
-    transformMatrix.scale(1000,1000,1000);
+    transformMatrix.scale(500,500,500);
     draw_sphere(transformMatrix);
 }
 
 void Viewer::drawReflection() {
-    QVector4D bottom = mPlayer->getBottom();
+    // switch(mReflectionType) {
+    //     case 0: {
+    //         // back
 
-    if (mCameraPosition.y() <= bottom.y())
-        return;
+    //         break;
+    //     }
+    //     case 1: {
+    //         // bottom
+
+    //         break;
+    //     } 
+    //     case 2: {
+    //         // left
+
+    //         break;
+    //     }
+    //     case 3: {
+    //         // right
+
+    //         break;
+    //     }
+    //     case 4: {
+    //         // top
+    //         QVector4D vertex = mPlayer->getVertex1();
+
+    //         if (mCameraPosition.y() <= vertex.y())
+    //             return;
+
+    //         break;
+    //     }
+    //     case 5: {
+    //         // front
+    //         break;
+    //     }
+    //     default:
+    //         break;
+    // }
+
+
 
     glDisable(GL_DEPTH_TEST);
     glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
@@ -253,9 +290,9 @@ void Viewer::drawReflection() {
     glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
     glStencilFunc(GL_ALWAYS, 1, 0xffffffff);
 
-    mDrawTopFaces = true;
+    mDrawStencil = true;
     mMap->draw();
-    mDrawTopFaces = false;
+    mDrawStencil = false;
 
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     glEnable(GL_DEPTH_TEST);
@@ -641,15 +678,59 @@ void Viewer::draw_mesh(Mesh* mesh) {
     
     float reflectFactor;
     if (mDrawReflection) {
-        QVector4D bottom = mesh->mVertex1;
 
-        double jumpHeight;
-        if (!mPlayer->isOverBox(&jumpHeight, &reflectFactor)) {
+        double distance;
+        if (!mPlayer->isOverBox(&mReflectionType, &distance, &reflectFactor)) {
             return; // don't render reflection if not over box
         }
 
-        transformMatrix.translate(0, bottom.y()*2 - jumpHeight*2,0);
-        transformMatrix.scale(1.0, -1.0, 1.0);
+        switch(mReflectionType) {
+            case 0: {
+                // back
+                double shift = mesh->mVertex1.z() - mesh->mVertex2.z();
+                transformMatrix.scale(1, 1, -1);
+                transformMatrix.translate(0, 0, shift + distance*2);
+                break;
+            }
+            case 1: {
+                // bottom
+                transformMatrix.translate(0, distance*2, 0);
+                transformMatrix.scale(1, -1, 1);
+                break;
+            }
+            case 2: {
+                // left
+                double shift = mesh->mVertex2.x() - mesh->mVertex1.x();
+                transformMatrix.scale(-1, 1, 1);
+                transformMatrix.translate(shift + distance*2, 0, 0);
+                break;
+            }
+            case 3: {
+                // right
+                double shift = mesh->mVertex2.x() - mesh->mVertex1.x();
+                transformMatrix.scale(-1, 1, 1);
+                transformMatrix.translate(-shift - distance*2, 0, 0);
+                break;
+            }
+            case 4: {   
+                // top  
+                QVector4D vertex = mesh->mVertex1;   
+                transformMatrix.translate(0, vertex.y()*2 - distance*2,0);
+                transformMatrix.scale(1, -1, 1);
+                break;
+            }
+            case 5: {
+                // front
+                double shift = mesh->mVertex1.z() - mesh->mVertex2.z();
+                transformMatrix.scale(1, 1, -1);
+                transformMatrix.translate(0, 0, - shift - distance*2);
+                break;
+            }
+            default: {
+                break;
+            }
+        }
+
     }
 
 
@@ -745,11 +826,41 @@ void Viewer::draw_cube(QMatrix4x4 transformMatrix, std::vector<int> textureIndic
         glBindTexture(GL_TEXTURE_2D, mTextures->mIDs[index]);
     }
 
-    if (mDrawTopFaces) {
-        glDrawArrays(GL_TRIANGLES, 24, 6);
+    if (mDrawStencil) {
+        // for stencil buffer
+        switch(mReflectionType) {
+            case 0: {
+                glDrawArrays(GL_TRIANGLES, 0, 6);
+                break;
+            }
+            case 1: {
+                glDrawArrays(GL_TRIANGLES, 6, 6);
+                break;
+            }
+            case 2: {
+                glDrawArrays(GL_TRIANGLES, 12, 6);
+                break;
+            }
+            case 3: {
+                glDrawArrays(GL_TRIANGLES, 18, 6);
+                break;
+            }
+            case 4: {
+                glDrawArrays(GL_TRIANGLES, 24, 6);
+                break;
+            }
+            case 5: { 
+                glDrawArrays(GL_TRIANGLES, 30, 6);
+                break;
+            }
+            default: {
+                break;
+            }
+        }
     } else {
         glDrawArrays(GL_TRIANGLES, 0, 36);
     }
+
 }
 
 void Viewer::draw_sphere(QMatrix4x4 transformMatrix) {

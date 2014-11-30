@@ -11,7 +11,7 @@ public:
 	virtual void setBoundaries(QMatrix4x4 transformMatrix);
 
 	virtual bool faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocity, int direction);
-  	virtual bool isOverBox(QVector4D p1, QVector4D p2, double* height, float* reflectFactor);
+  	virtual bool isOverBox(QVector4D p1, QVector4D p2, int* face, double* distance, float* reflectFactor);
 
     static double EPSILON;
 };
@@ -24,7 +24,7 @@ public:
 	virtual void setBoundaries(QMatrix4x4 transformMatrix);
 
 	virtual bool faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocity, int direction);
-  	virtual bool isOverBox(QVector4D p1, QVector4D p2, double* height, float* reflectFactor);
+  	virtual bool isOverBox(QVector4D p1, QVector4D p2, int* face, double* distance, float* reflectFactor);
 
 
 private:
@@ -51,7 +51,7 @@ public:
 	virtual void setBoundaries(QMatrix4x4 transformMatrix);
 
 	virtual bool faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocity, int direction);
-  	virtual bool isOverBox(QVector4D p1, QVector4D p2, double* height, float* reflectFactor);
+  	virtual bool isOverBox(QVector4D p1, QVector4D p2, int* face, double* distance, float* reflectFactor);
 };
 
 #endif
