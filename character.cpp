@@ -6,7 +6,7 @@
 
 
 Character::Character() {
-	MAX_JUMPS = 2000;
+	MAX_JUMPS = 2;
 	GRAVITY = -0.03f;
 	DEATH_HEIGHT = -50;
 

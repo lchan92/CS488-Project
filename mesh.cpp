@@ -256,5 +256,4 @@ void Mesh::resetPosition() {
 	setTransform();
 
 	QVector4D pos = mTransform * mRotateTransform * mInitPosition;
-	std::cout << "pos reset: " << pos.x() << "," << pos.y() << "," << pos.z() << std::endl;
 }
