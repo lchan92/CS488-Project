@@ -29,6 +29,8 @@ Viewer::Viewer(const QGLFormat& format, QWidget *parent)
 
 
     //FLAGS
+    mTrophyAcquired = false;
+    mTrophyAnimating = false;
     mForwardFlag = false;
     mBackwardFlag = false;
     mLeftFlag = false;
@@ -223,6 +225,27 @@ void Viewer::initializeGL() {
 
 
 
+bool Viewer::isTrophyAcquired() {
+    return mTrophyAcquired;
+}
+
+void Viewer::reset() {
+    mTrophyAcquired = false;
+    mTrophyAnimating = false;
+    mForwardFlag = false;
+    mBackwardFlag = false;
+    mLeftFlag = false;
+    mRightFlag = false;
+
+    mPlayer->resetPosition();
+    mLights->resetPositions();
+
+    mCameraTransformation.setToIdentity();
+    mCameraRotation.setToIdentity();
+    mTrophy->resetPosition();
+}
+
+
 
 
 
@@ -238,8 +261,8 @@ void Viewer::paintGL() {
     mPlayer->draw();
     mTrophy->draw();
 
-     glEnable(GL_BLEND);
-     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     mMap->draw();
     glDisable(GL_BLEND);
 
@@ -340,8 +363,6 @@ void Viewer::mouseMoveEvent(QMouseEvent *event) {
 
     float deltaX = mouseMove.x();
     float deltaY = mouseMove.y();
-    // mPlayer->rotateY(-deltaX/10);
-
 
     mCameraRotation.rotate(-deltaX/10, 0, 1, 0);
 
@@ -429,7 +450,6 @@ void Viewer::updatePositions() {
     mMap->moveObjects();
 
     QVector3D velocity;
-
 
     // CHECK IF EACH BOXES SIDES MOVE INTO CHARACTER WHILE NOT PRESSING BUTTONS
     mPlayer->checkFrontCollisions(&velocity);
@@ -524,8 +544,18 @@ void Viewer::updatePositions() {
     }
 
     // WIN GAME
-    if (mTrophy->isInRange(QVector4D(mPlayer->getPosition(), 1))) {
-        mTrophy->descend();
+    if (mTrophyAnimating || mTrophy->isInRange(QVector4D(mPlayer->getPosition(), 1))) {
+        mTrophyAnimating = true;
+
+        // if animation is completed, display win menu
+        if (mTrophy->descend()) {
+            mTrophyAcquired = true;
+            mTrophyAnimating = false;
+            mForwardFlag = false;
+            mBackwardFlag = false;
+            mLeftFlag = false;
+            mRightFlag = false;
+        }
     }
 
     update();
@@ -705,7 +735,8 @@ void Viewer::draw_mesh(Mesh* mesh) {
 
         if (mDrawCharacterReflection && !mPlayer->isOverBox(&mReflectionType, &distance, &reflectFactor)) {
             return; // don't render reflection if not over box
-        } else if (mDrawTrophyReflection && !mTrophy->isOverBox(&mReflectionType, &distance, &reflectFactor)) {
+        } else 
+        if (mDrawTrophyReflection && !mTrophy->isOverBox(&mReflectionType, &distance, &reflectFactor)) {
             return;
         }
 

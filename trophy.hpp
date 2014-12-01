@@ -19,6 +19,8 @@ public:
 
 	void setPosition();
 	QVector4D getPosition();
+	void resetPosition();
+
 
 	void updatePosition();
 	void updateBoundingBox();
@@ -26,7 +28,7 @@ public:
 	bool isOverBox(int* face, double* height, float* reflectFactor);
 
 	bool isInRange(QVector4D position);
-	void descend();
+	bool descend();
 
 	Mesh* mMesh;
 private:

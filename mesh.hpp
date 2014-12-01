@@ -50,6 +50,8 @@ public:
 	void translate(QVector3D amount);
 	void rotate(char axis, double angle);
 
+	void resetPosition();
+
 
     std::vector<SubMesh*> subMeshes;
     Textures* mTextures;

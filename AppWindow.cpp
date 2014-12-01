@@ -24,6 +24,10 @@ AppWindow::AppWindow(SceneNode* mapRoot) {
 
     createApplicationActions();
     createMenu();
+
+    QTimer *timer = new QTimer(this);
+    connect(timer, SIGNAL(timeout()), this, SLOT(displayVictoryPopup()));
+    timer->start(20);
 }
 
 void AppWindow::createApplicationActions() {
@@ -48,5 +52,21 @@ void AppWindow::createMenu() {
 
     for (auto& action : m_menu_actions) {
         m_menu_app->addAction(action);
+    }
+}
+
+
+
+void AppWindow::displayVictoryPopup() {
+    if (m_viewer->isTrophyAcquired()) {    
+        QMessageBox::StandardButton reply;
+        reply = QMessageBox::question(this, "V I C T O R Y", "Quit?", 
+                                            QMessageBox::Yes|QMessageBox::No);
+
+        if (reply == QMessageBox::Yes) {
+            close();
+        } else {
+            m_viewer->reset();
+        }
     }
 }

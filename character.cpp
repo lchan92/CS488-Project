@@ -92,6 +92,18 @@ void Character::updateBoundingBox() {
 	mVertex2 = mMesh->getTransform() * mMesh->mVertex2;
 }
 
+void Character::resetPosition() {
+	mJumpCount = 0;
+	mAlive = true;
+
+	mVerticalVelocity = 0.0f;
+	mOnSurface = false;
+
+	mMesh->resetPosition();
+	updatePosition();
+}
+
+
 
 
 bool Character::isAlive() {
@@ -171,6 +183,7 @@ bool Character::applyGravity(QVector3D* velocity) {
 		direction = mVerticalVelocity < 0? 4: 5;
 	}
 
+
 	if (mMapRoot->faceIntersectsBox(mVertex1, mVertex2, velocity, direction))	{
 		// reset position of character to not get stuck in physics when landing
 		mVerticalVelocity = velocity->y();
@@ -200,6 +213,8 @@ bool Character::applyGravity(QVector3D* velocity) {
 void Character::checkFrontCollisions(QVector3D* velocity) {
 	// COLLIDE FRONT FACES WITH CHARACTER
 	if (mMapRoot->faceIntersectsBox(mVertex1, mVertex2, velocity, 0)) {
+		std::cout << "         mVertex1: " << mVertex1.x() << "," << mVertex1.y() << "," << mVertex1.z() << std::endl;
+		std::cout << "         mVertex2: " << mVertex2.x() << "," << mVertex2.y() << "," << mVertex2.z() << std::endl;
 		mMesh->translate(*velocity);
 		updatePosition();
 	}

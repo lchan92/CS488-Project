@@ -29,5 +29,9 @@ void Lights::createLight(QVector4D position, QVector3D colour, QVector3D falloff
 	index++;
 }
 
+void Lights::resetPositions() {
+	mPositions[0] = QVector4D(0,0,0,1);
+}
+
 
 

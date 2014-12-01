@@ -35,9 +35,19 @@ QVector4D Trophy::getPosition() {
 	return mPosition;
 }
 
+void Trophy::resetPosition() {
+	mMesh->resetPosition();
+	setPosition();
+}
+
+
+
+
 void Trophy::updatePosition() {
 	mPosition = mMesh->mInitPosition;
 	mPosition = mMesh->getTransform() * mMesh->getRotationTransform() * mPosition;
+
+	updateBoundingBox();
 }
 
 void Trophy::updateBoundingBox() {
@@ -61,10 +71,13 @@ bool Trophy::isInRange(QVector4D position) {
 	return false;
 }
 
-void Trophy::descend() {
+bool Trophy::descend() {
 	if (mPosition.y() > 60) {
 		mMesh->translate(QVector3D(0,-0.1,0));
 		mMesh->rotate('y', 10);
 		updatePosition();
+		return false;
 	}
+
+	return true;
 }

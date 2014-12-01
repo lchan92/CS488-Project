@@ -10,6 +10,8 @@ class Lights {
 public:
 	Lights();
 	virtual ~Lights();
+	
+	void resetPositions();
 
 	QVector4D mPositions[NUM_LIGHTS];
 	QVector3D mColours[NUM_LIGHTS];

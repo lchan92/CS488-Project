@@ -26,6 +26,7 @@ public:
 
 	void updatePosition();
 	void updateBoundingBox();
+	void resetPosition();
 
 
 	bool isAlive();

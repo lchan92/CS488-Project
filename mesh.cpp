@@ -210,6 +210,9 @@ void Mesh::bind() {
 }
 
 void Mesh::setTransform() {
+	mTransform.setToIdentity();
+	mRotateTransform.setToIdentity();
+
 	float midX = mVertex1.x() + (mVertex2.x() - mVertex1.x())/2;
 	float midY = mVertex1.y() + (mVertex2.y() - mVertex1.y())/2;
 	float midZ = mVertex2.z() + (mVertex1.z() - mVertex2.z())/2;
@@ -247,4 +250,11 @@ void Mesh::rotate(char axis, double angle) {
       break;
     }
   }
+}
+
+void Mesh::resetPosition() {
+	setTransform();
+
+	QVector4D pos = mTransform * mRotateTransform * mInitPosition;
+	std::cout << "pos reset: " << pos.x() << "," << pos.y() << "," << pos.z() << std::endl;
 }

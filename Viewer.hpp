@@ -35,6 +35,9 @@ public:
     QSize minimumSizeHint() const;
     QSize sizeHint() const;
 
+    bool isTrophyAcquired();
+    void reset();
+
     void draw_mesh(Mesh* mesh);
     void draw_cube(QMatrix4x4 transformMatrix, std::vector<int> textureIDs, float reflectFactor, float transparency);
     void draw_sphere(QMatrix4x4 transformMatrix);
@@ -53,7 +56,6 @@ public slots:
     void updatePositions();
 
 protected:
-
     // Events we implement
 
     // Called when GL is first initialized
@@ -85,6 +87,8 @@ private:
     std::vector<GLfloat> mCubeVerts, mCubeNormals, mCubeUVCoords;
     std::vector<GLfloat> mSphereVerts, mSphereNormals;
 
+
+    bool mTrophyAcquired, mTrophyAnimating;
 
     bool mLeftFlag, mRightFlag, mForwardFlag, mBackwardFlag;
     int mJumpCount, mReflectionType;
