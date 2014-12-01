@@ -281,289 +281,349 @@ bool Block::inFrontAndBehindBox(QVector4D p1, QVector4D p2) {
 
 
 bool Block::intersectsFront(QVector4D p1, QVector4D p2, QVector3D* velocity, QVector3D boxVelocity) {
-	double z = fmin(p1.z(), p2.z());
-
-	// if (oldVelocityZ < 0 && boxVelocity.z() > 0 &&
-	// 	p1.z() > mVertex1.z()) { // loose check to make sure we're in front first
-	// 	velocity->setZ(mVertex1.z() - z + 0.05);
-	// 	oldVelocityZ = boxVelocity.z();
-
-
-	// 	std::cout << " WHYYYYY THE FUCK AM I HERE " << std::endl;
-	// 	return true;
-	// }
-
-	if (z - mVertex1.z() > -EPSILON && 
-		(z + velocity->z()) - (mVertex1.z() + boxVelocity.z()) < EPSILON &&
-		(betweenLeftRight(p1.x(), mVertex1.x(), mVertex2.x()) || 
+	// check if character can intersect with the front face + make sure we're at least in front of the other side of the box
+	if (!(betweenLeftRight(p1.x(), mVertex1.x(), mVertex2.x()) || 
 			betweenLeftRight(p2.x(), mVertex1.x(), mVertex2.x()) ||
-			leftAndRightOfBox(p1, p2)) &&
-		(betweenTopBottom(p1.y(), mVertex2.y(), mVertex1.y()) ||
+			leftAndRightOfBox(p1, p2)) ||
+		!(betweenTopBottom(p1.y(), mVertex2.y(), mVertex1.y()) ||
 			betweenTopBottom(p2.y(), mVertex2.y(), mVertex1.y()) ||
-			aboveAndUnderBox(p1, p2))) {
-		oldVelocityZ = boxVelocity.z();
+			aboveAndUnderBox(p1, p2)) ||
+		!(p2.z() > mVertex2.z()))
+		return false;
 
+	/* CASES: */	
+	// character stationary
+	if (velocity->z() == 0) {
+		// 1: box stationary, character stationary
+		if (boxVelocity.z() == 0) {
+			double distance = p2.z() - mVertex1.z();
+
+			if (distance > -EPSILON && distance < EPSILON)
+				return true;
+		}
+
+		// 2: box moving at character, character stationary
 		if (boxVelocity.z() > 0) {
-			velocity->setZ(boxVelocity.z());
-		} else if (boxVelocity.z() < 0) {
-			if (velocity->z() == 0) {
-				velocity->setZ(0);
-			} else {
-				double ratio = (mVertex1.z() + boxVelocity.z() - z)/velocity->z();
-				velocity->setZ(velocity->z() * ratio);
-			}
-		} else {
-			if (velocity->z() == 0) {
-				velocity->setZ(0);
-			} else {
-				double ratio = (mVertex1.z() - z)/velocity->z();
-				if (ratio < 0.001) ratio = 0;
+			// if the box + it's next move will intersect the character, move the character
+			double newBoxZ = mVertex1.z() + boxVelocity.z();
 
-				velocity->setZ(velocity->z() * ratio);
+			if (newBoxZ - p2.z() > -EPSILON) {
+				velocity->setZ(newBoxZ - p2.z());
+				return true;
 			}
 		}
 
-		return true;
+		return false;
+	}
+	// character towards front face 
+	else if (velocity->z() < 0) {
+		double newCharacterZ = p2.z() + velocity->z();
+
+		// 3: box stationary
+		if (boxVelocity.z() == 0) {
+			// if character + velocity goes inside the box
+			if (newCharacterZ - mVertex1.z() < EPSILON) {
+				velocity->setZ(mVertex1.z() - p2.z());
+				return true;
+			}
+		}
+
+		double newBoxZ = mVertex1.z() + boxVelocity.z();
+
+		// 4: box moving away or at character
+		// if character + velocity goes inside of box + its velocity
+		if (newCharacterZ - newBoxZ < EPSILON) {
+			velocity->setZ(newBoxZ - p2.z());
+			return true;
+		}
 	}
 
 	return false;
 }
 
 bool Block::intersectsBack(QVector4D p1, QVector4D p2, QVector3D* velocity, QVector3D boxVelocity) {
-	double z = fmax(p1.z(), p2.z());
-
-	// if (oldVelocityZ > 0 && boxVelocity.z() < 0 &&
-	// 	p2.z() < mVertex2.z()) { // loose check to make sure character is positioned somewhere that can collide with the back
-	// 	velocity->setZ(mVertex2.z() - z - 0.05);
-	// 	oldVelocityZ = boxVelocity.z();
-	// 	return true;
-	// }
-
-	if (z - mVertex2.z() < EPSILON && 
-		(z + velocity->z()) - (mVertex2.z() + boxVelocity.z()) > -EPSILON &&
-		(betweenLeftRight(p1.x(), mVertex1.x(), mVertex2.x()) || 
+	if (!(betweenLeftRight(p1.x(), mVertex1.x(), mVertex2.x()) || 
 			betweenLeftRight(p2.x(), mVertex1.x(), mVertex2.x()) ||
-			leftAndRightOfBox(p1, p2)) &&
-		(betweenTopBottom(p1.y(), mVertex2.y(), mVertex1.y()) ||
+			leftAndRightOfBox(p1, p2)) ||
+		!(betweenTopBottom(p1.y(), mVertex2.y(), mVertex1.y()) ||
 			betweenTopBottom(p2.y(), mVertex2.y(), mVertex1.y()) ||
-			aboveAndUnderBox(p1, p2))) {
-		oldVelocityZ = boxVelocity.z();
+			aboveAndUnderBox(p1, p2)) ||
+		!(p1.z() < mVertex1.z()))
+		return false;
 
-		if (boxVelocity.z() > 0) {
-			if (velocity->z() == 0) {
-				velocity->setZ(0);
-			}
-			else {
-				double ratio = (mVertex2.z() + boxVelocity.z() - z)/velocity->z();
-				velocity->setZ(velocity->z() * ratio);
-			}
-		} else if (boxVelocity.z() < 0) {
-			velocity->setZ(boxVelocity.z());
-		} else {
-			if (velocity->z() == 0) {
-				velocity->setZ(0);
-			} else {
-				double ratio = (mVertex2.z() - z)/velocity->z();
-				if (ratio < 0.001) ratio = 0;
+	// see intersects front for cases, similar logic
+	if (velocity->z() == 0) {
+		// box stationary
+		if (boxVelocity.z() == 0) {
+			double distance = mVertex2.z() - p1.z();
 
-				velocity->setZ(velocity->z() * ratio);
+			if (distance > -EPSILON && distance < EPSILON)
+				return true;
+		}
+
+		// box moving at character
+		if (boxVelocity.z() < 0) {
+			double newBoxZ = mVertex2.z() + boxVelocity.z();
+
+			if (newBoxZ - p1.z() < EPSILON) {
+				velocity->setZ(newBoxZ - p1.z());
+				return true;
+			}
+		}
+	} 
+	// character moving towards face
+	else if (velocity->z() > 0) {
+		double newCharacterZ = p1.z() + velocity->z();
+
+		// box stationary
+		if (boxVelocity.z() == 0) {
+			if (newCharacterZ - mVertex2.z() > -EPSILON) {
+				velocity->setZ(mVertex2.z() - p1.z());
+				return true;
 			}
 		}
 
-		return true;
+		double newBoxZ = mVertex2.z() + boxVelocity.z();
+
+		// box moving at or away from character
+		if (newCharacterZ - newBoxZ > -EPSILON) {
+			velocity->setZ(newBoxZ - p1.z());
+			return true;
+		}
 	}
 
 	return false;
 }
 
 bool Block::intersectsRight(QVector4D p1, QVector4D p2, QVector3D* velocity, QVector3D boxVelocity) {
-	double x = fmin(p1.x(), p2.x());
-
-	// if (oldVelocityX < 0 && boxVelocity.x() > 0 &&
-	// 	p2.x() > mVertex2.x()) { // loose check to make sure we're on the right
-	// 	velocity->setX(mVertex2.x() - x + 0.05);
-	// 	oldVelocityX = boxVelocity.x();
-	// 	return true;
-	// }
-
-	if (x - mVertex2.x() > -EPSILON && 
-		(x + velocity->x()) - (mVertex2.x() + boxVelocity.x()) < EPSILON &&
-		(betweenTopBottom(p1.y(), mVertex2.y(), mVertex1.y()) ||
+	if (!(betweenTopBottom(p1.y(), mVertex2.y(), mVertex1.y()) ||
 			betweenTopBottom(p2.y(), mVertex2.y(), mVertex1.y()) ||
-			aboveAndUnderBox(p1, p2)) &&
-		(betweenFrontBack(p1.z(), mVertex1.z(), mVertex2.z()) ||
+			aboveAndUnderBox(p1, p2)) ||
+		!(betweenFrontBack(p1.z(), mVertex1.z(), mVertex2.z()) ||
 			betweenFrontBack(p2.z(), mVertex1.z(), mVertex2.z()) ||
-			inFrontAndBehindBox(p1, p2))) {
-		oldVelocityX = boxVelocity.x();
+			inFrontAndBehindBox(p1, p2)) ||
+		!(p1.x() > mVertex1.x()))
+		return false;
+
+	// see intersects front case for logic
+	if (velocity->x() == 0) {
+		if (boxVelocity.x() == 0) {
+			double distance = p1.x() - mVertex2.x();
+
+			if (distance > -EPSILON && distance < EPSILON)
+				return true;
+		}
 
 		if (boxVelocity.x() > 0) {
-			velocity->setX(boxVelocity.x());
-		} else if (boxVelocity.x() < 0) {
-			if (velocity->x() == 0) {
-				velocity->setX(0);
-			} else {
-				double ratio = (mVertex2.x() + boxVelocity.x() - x)/velocity->x();
-				velocity->setX(velocity->x() * ratio);
-			}
-		} else {
-			if (velocity->x() == 0) {
-				velocity->setX(0);
-			} else {
-				double ratio = (mVertex2.x() - x)/velocity->x();
-				if (ratio < 0.001) ratio = 0;
+			double newBoxX = mVertex2.x() + boxVelocity.x();
 
-				velocity->setX(velocity->x() * ratio);
+			if (newBoxX - p1.x() > -EPSILON) {
+				velocity->setX(newBoxX - p1.x());
+				return true;
+			}
+		}
+	} else if (velocity->x() < 0) {
+		double newCharacterX = p1.x() + velocity->x();
+
+		if (boxVelocity.x() == 0) {
+			if (newCharacterX - mVertex2.x() < EPSILON) {
+				velocity->setX(mVertex2.x() - p1.x());
+				return true;
 			}
 		}
 
-		return true;
+		double newBoxX = mVertex2.x() + boxVelocity.x();
+
+		if (newCharacterX - newBoxX < EPSILON) {
+			velocity->setX(newBoxX - p1.x());
+			return true;
+		}
 	}
 
 	return false;
 }
 
 bool Block::intersectsLeft(QVector4D p1, QVector4D p2, QVector3D* velocity, QVector3D boxVelocity) {
-	double x = fmax(p1.x(), p2.x());
-
-	// if (oldVelocityX > 0 && boxVelocity.x() < 0 &&
-	// 	p1.x() < mVertex1.x()) { // make sure we're on the left of the object
-	// 	velocity->setX(mVertex1.x() - x - 0.05);
-	// 	oldVelocityX = boxVelocity.x();
-	// 	return true;
-	// }
-
-	if (x - mVertex1.x() < EPSILON && 
-		(x + velocity->x()) - (mVertex1.x() + boxVelocity.x()) > -EPSILON &&
-		(betweenTopBottom(p1.y(), mVertex2.y(), mVertex1.y()) ||
+	if (!(betweenTopBottom(p1.y(), mVertex2.y(), mVertex1.y()) ||
 			betweenTopBottom(p2.y(), mVertex2.y(), mVertex1.y()) ||
-			aboveAndUnderBox(p1, p2)) &&
-		(betweenFrontBack(p1.z(), mVertex1.z(), mVertex2.z()) ||
+			aboveAndUnderBox(p1, p2)) ||
+		!(betweenFrontBack(p1.z(), mVertex1.z(), mVertex2.z()) ||
 			betweenFrontBack(p2.z(), mVertex1.z(), mVertex2.z()) ||
-			inFrontAndBehindBox(p1, p2))) {
-		oldVelocityX = boxVelocity.x();
+			inFrontAndBehindBox(p1, p2)) ||
+		!(p2.x() < mVertex2.x()))
+		return false;
 
-		if (boxVelocity.x() > 0) {
-			if (velocity->x() == 0) {
-				velocity->setX(0);
-			} else {
-				double ratio = (mVertex1.x() + boxVelocity.x() - x)/velocity->x();
-				velocity->setX(velocity->x() * ratio);
+	if (velocity->x() == 0) {
+		if (boxVelocity.x() == 0) {
+			double distance = mVertex1.x() - p2.x();
+
+			if (distance > -EPSILON && distance < EPSILON)
+				return true;
+		}
+
+		if (boxVelocity.x() < 0) {
+			double newBoxX = mVertex1.x() + boxVelocity.x();
+
+			if (newBoxX - p2.x() < EPSILON) {
+				velocity->setX(newBoxX - p2.x());
+				return true;
 			}
-		} else if (boxVelocity.x() < 0) {
-			velocity->setX(boxVelocity.x());
-		} else {
-			if (velocity->x() == 0) {
-				velocity->setX(0);
-			} else {
-				double ratio = (mVertex1.x() - x)/velocity->x();
-				if (ratio < 0.001) ratio = 0;
+		}
+	} else if (velocity->x() > 0) {
+		double newCharacterX = p2.x() + velocity->x();
 
-				velocity->setX(velocity->x() * ratio);
+		if (boxVelocity.x() == 0) {
+			if (newCharacterX - mVertex1.x() > -EPSILON) {
+				velocity->setX(mVertex1.x() - p2.x());
+				return true;
 			}
 		}
 
-		return true;
+		double newBoxX = mVertex1.x() + boxVelocity.x();
+
+		if (newCharacterX - newBoxX > -EPSILON) {
+			velocity->setX(newBoxX - p2.x());
+			return true;
+		}
 	}
 
 	return false;
 }
 
 bool Block::intersectsTop(QVector4D p1, QVector4D p2, QVector3D* velocity, QVector3D boxVelocity) {
-	// see for inspiration on using velocity:
-	// http://techny.tumblr.com/post/42125198333/3d-collision-detection-and-resolution-using-sweeping
-	double y = fmin(p1.y(), p2.y());
-
-	// case where box changes direction and character goes inside
-	// if (oldVelocityY < 0 && boxVelocity.y() > 0)  {
-	// 	velocity->setY(mVertex2.y() - y + 0.03);
-	// 	oldVelocityY = boxVelocity.y();
-
-	// 	velocity->setX(boxVelocity.x());
-	// 	velocity->setZ(boxVelocity.z());
-	// 	return true;
-	// }
-
-	if (y - mVertex2.y() > -EPSILON && 
-		(y + velocity->y()) - (mVertex2.y() + boxVelocity.y()) < EPSILON &&
-		(betweenLeftRight(p1.x(), mVertex1.x(), mVertex2.x()) || 
+	if (!(betweenLeftRight(p1.x(), mVertex1.x(), mVertex2.x()) || 
 			betweenLeftRight(p2.x(), mVertex1.x(), mVertex2.x()) ||
-			leftAndRightOfBox(p1, p2)) &&
-		(betweenFrontBack(p1.z(), mVertex1.z(), mVertex2.z()) ||
+			leftAndRightOfBox(p1, p2)) ||
+		!(betweenFrontBack(p1.z(), mVertex1.z(), mVertex2.z()) ||
 			betweenFrontBack(p2.z(), mVertex1.z(), mVertex2.z()) ||
-			inFrontAndBehindBox(p1, p2))) {
-		// collision detected
-		oldVelocityY = boxVelocity.y();
+			inFrontAndBehindBox(p1, p2)) ||
+		!(p1.y() > mVertex1.y()))
+		return false;
+
+
+
+	if (velocity->y() == 0) {
+		if (boxVelocity.y() == 0) {
+			double distance = p1.y() - mVertex2.y();
+
+			if (distance > -EPSILON && distance < EPSILON)
+				return true;
+		}
 
 		if (boxVelocity.y() > 0) {
-			velocity->setY(boxVelocity.y());
-		} else if (boxVelocity.y() < 0) {
-			if (velocity->y() == 0) {
-				velocity->setY(0);
-			} else {
-				double ratio = (mVertex2.y() + boxVelocity.y() - y)/velocity->y();
-				velocity->setY(velocity->y() * ratio);
-			}
-		} else {
-			if (velocity->y() == 0) {
-				velocity->setY(0);
-			} else {
-				double ratio = (mVertex2.y() - y)/velocity->y();
-				if (ratio < 0.001) ratio = 0;
+			double newBoxY = mVertex2.y() + boxVelocity.y();
 
-				velocity->setY(velocity->y() * ratio);
+			if (newBoxY - p1.y() > -EPSILON) {
+				velocity->setY(newBoxY - p1.y());
+				return true;
+			}
+		}
+	} else if (velocity->y() < 0) {
+		double newCharacterY = p1.y() + velocity->y();
+
+		if (boxVelocity.y() == 0) {
+			if (newCharacterY - mVertex2.y() < EPSILON) {
+				velocity->setY(mVertex2.y() - p1.y());
+				return true;
 			}
 		}
 
-		velocity->setX(boxVelocity.x());
-		velocity->setZ(boxVelocity.z());
-		return true;
+		double newBoxY = mVertex2.y() + boxVelocity.y();
+
+		if (newCharacterY - newBoxY < EPSILON) {
+			velocity->setY(newBoxY - p1.y());
+			return true;
+		}
+	} else {
+		if (boxVelocity.y() > 0) {
+			double newCharacterY = p1.y() + velocity->y();
+			double newBoxY = mVertex2.y() + boxVelocity.y();
+
+			if (newCharacterY - newBoxY < EPSILON) {
+				velocity->setY(newBoxY - p1.y());
+				return true;				
+			}
+		}
 	}
 
-	oldVelocityY = 0;
 	return false;
 }
 
 bool Block::intersectsBottom(QVector4D p1, QVector4D p2, QVector3D* velocity, QVector3D boxVelocity) {
-	double y = fmax(p1.y(), p2.y());
-
-	// if (oldVelocityY > 0 && boxVelocity.y() < 0) {
-	// 	velocity->setY(mVertex1.y() - y - 0.05);
-	// 	oldVelocityY = boxVelocity.y();
-	// 	return true;
-	// }
-
-	if (y - mVertex1.y() < EPSILON && 
-		(y + velocity->y()) - (mVertex1.y() + boxVelocity.y()) > -EPSILON &&
-		(betweenLeftRight(p1.x(), mVertex1.x(), mVertex2.x()) || 
+	if (!(betweenLeftRight(p1.x(), mVertex1.x(), mVertex2.x()) || 
 			betweenLeftRight(p2.x(), mVertex1.x(), mVertex2.x()) ||
-			leftAndRightOfBox(p1, p2)) &&
-		(betweenFrontBack(p1.z(), mVertex1.z(), mVertex2.z()) ||
+			leftAndRightOfBox(p1, p2)) ||
+		!(betweenFrontBack(p1.z(), mVertex1.z(), mVertex2.z()) ||
 			betweenFrontBack(p2.z(), mVertex1.z(), mVertex2.z()) ||
-			inFrontAndBehindBox(p1, p2))) {
-		oldVelocityY = boxVelocity.y();
+			inFrontAndBehindBox(p1, p2)) ||
+		!(p2.y() < mVertex2.y()))
+		return false;
 
-		if (boxVelocity.y() > 0) {
-			if (velocity->y() == 0) {
-				velocity->setY(0);
-			} else {
-				double ratio = (mVertex1.y() + boxVelocity.y() - y)/velocity->y();
-				velocity->setY(velocity->y() * ratio);
-			}
-		} else if (boxVelocity.y() < 0) {
-			velocity->setY(boxVelocity.y());
-		} else {
-			if (velocity->y() == 0) {
-				velocity->setY(0);
-			} else {
-				double ratio = (mVertex1.y() - y)/velocity->y();
-				if (ratio < 0.001) ratio = 0;
+	if (velocity->y() == 0) {
+		if (boxVelocity.y() == 0) {
+			double distance = mVertex1.y() - p2.y();
 
-				velocity->setY(velocity->y() * ratio);
+			if (distance > -EPSILON && distance < EPSILON) {
+				return true;
 			}
 		}
 
-		return true;
+		if (boxVelocity.y() < 0) {
+			double newBoxY = mVertex1.y() + boxVelocity.y();
+
+			if (newBoxY - p2.y() < EPSILON) {
+				velocity->setY(newBoxY - p2.y());
+				return true;
+			}
+		}
+	} else if (velocity->y() > 0) {
+		double newCharacterY = p2.y() + velocity->y();
+
+		if (boxVelocity.y() == 0) {
+			if (newCharacterY - mVertex1.y() > -EPSILON) {
+				velocity->setY(mVertex1.y() - p2.y());
+				return true;
+			}
+		}
+
+		double newBoxY = mVertex1.y() + boxVelocity.y();
+
+		if (newCharacterY - newBoxY > -EPSILON) {
+			velocity->setY(newBoxY - p2.y());
+			return true;
+		}
 	}
+
+
+
+	// if (y - mVertex1.y() < EPSILON && 
+	// 	(y + velocity->y()) - (mVertex1.y() + boxVelocity.y()) > -EPSILON &&
+	// 	 &&
+	// 	) {
+	// 	oldVelocityY = boxVelocity.y();
+
+	// 	if (boxVelocity.y() > 0) {
+	// 		if (velocity->y() == 0) {
+	// 			velocity->setY(0);
+	// 		} else {
+	// 			double ratio = (mVertex1.y() + boxVelocity.y() - y)/velocity->y();
+	// 			velocity->setY(velocity->y() * ratio);
+	// 		}
+	// 	} else if (boxVelocity.y() < 0) {
+	// 		velocity->setY(boxVelocity.y());
+	// 	} else {
+	// 		if (velocity->y() == 0) {
+	// 			velocity->setY(0);
+	// 		} else {
+	// 			double ratio = (mVertex1.y() - y)/velocity->y();
+	// 			if (ratio < 0.001) ratio = 0;
+
+	// 			velocity->setY(velocity->y() * ratio);
+	// 		}
+	// 	}
+
+	// 	return true;
+	// }
 
 	return false;
 }

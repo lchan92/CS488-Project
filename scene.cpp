@@ -295,8 +295,14 @@ bool GeometryNode::faceIntersectsBox(QVector4D p1, QVector4D p2, QVector3D* velo
   QVector3D boxVelocity = QVector3D(mDirection[0] * mVelocity[0], 
                                     mDirection[1] * mVelocity[1],
                                     mDirection[2] * mVelocity[2]);
-
-  return m_primitive->faceIntersectsBox(p1, p2, velocity, boxVelocity, direction);
+  if (m_primitive->faceIntersectsBox(p1, p2, velocity, boxVelocity, direction)) {
+    if (direction == 4) {
+      velocity->setX(boxVelocity.x());
+      velocity->setZ(boxVelocity.z());
+    }
+    return true; 
+  }
+  return false;
 }
 
 bool GeometryNode::isOverBox(QVector4D p1, QVector4D p2, int* face, double* distance, float* reflectFactor)

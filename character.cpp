@@ -168,6 +168,9 @@ void Character::jump() {
 }
 
 bool Character::applyGravity(QVector3D* velocity) {
+	bool intersectsTop = false;
+	bool intersectsBot = false;
+
 	mVerticalVelocity += GRAVITY;
 	
 	if (mVerticalVelocity < -3.0f) {
@@ -176,15 +179,7 @@ bool Character::applyGravity(QVector3D* velocity) {
 
 	velocity->setY(mVerticalVelocity);
 
-	int direction;
-	if (mOnSurface) {
-		direction = 4;
-	} else {
-		direction = mVerticalVelocity < 0? 4: 5;
-	}
-
-
-	if (mMapRoot->faceIntersectsBox(mVertex1, mVertex2, velocity, direction))	{
+	if (mMapRoot->faceIntersectsBox(mVertex1, mVertex2, velocity, 4))	{
 		// reset position of character to not get stuck in physics when landing
 		mVerticalVelocity = velocity->y();
 
@@ -192,16 +187,23 @@ bool Character::applyGravity(QVector3D* velocity) {
 		updatePosition();
 
 		// reset jump count since we're on a surface
-		if (direction == 4) {
-			mJumpCount = 0;
-			mOnSurface = true;
-		}
-		
-		if (mVerticalVelocity < 0) {
-			mVerticalVelocity = 0;
-		}
+		mJumpCount = 0;
+		mOnSurface = true;
 
-	} else {
+		intersectsTop = true;
+	}
+
+	if (mMapRoot->faceIntersectsBox(mVertex1, mVertex2, velocity, 5)) {
+		mVerticalVelocity = velocity->y();
+
+		mMesh->translate(*velocity);
+		updatePosition();
+
+		intersectsBot = true;
+	}
+
+
+	if (!intersectsTop && !intersectsBot) {
 		mOnSurface = false;
 		mMesh->translate(*velocity);
 		updatePosition();
@@ -213,8 +215,6 @@ bool Character::applyGravity(QVector3D* velocity) {
 void Character::checkFrontCollisions(QVector3D* velocity) {
 	// COLLIDE FRONT FACES WITH CHARACTER
 	if (mMapRoot->faceIntersectsBox(mVertex1, mVertex2, velocity, 0)) {
-		std::cout << "         mVertex1: " << mVertex1.x() << "," << mVertex1.y() << "," << mVertex1.z() << std::endl;
-		std::cout << "         mVertex2: " << mVertex2.x() << "," << mVertex2.y() << "," << mVertex2.z() << std::endl;
 		mMesh->translate(*velocity);
 		updatePosition();
 	}
@@ -228,16 +228,16 @@ void Character::checkBackCollisions(QVector3D* velocity) {
 	}
 }
 
-void Character::checkLeftCollisions(QVector3D* velocity) {
-	// COLLIDE BACK FACES WITH CHARACTER
+void Character::checkRightCollisions(QVector3D* velocity) {
+	// COLLIDE RIGHT FACES WITH CHARACTER
 	if (mMapRoot->faceIntersectsBox(mVertex1, mVertex2, velocity, 2)) {
 		mMesh->translate(*velocity);
 		updatePosition();
 	}
 }
 
-void Character::checkRightCollisions(QVector3D* velocity) {
-	// COLLIDE BACK FACES WITH CHARACTER
+void Character::checkLeftCollisions(QVector3D* velocity) {
+	// COLLIDE LEFT FACES WITH CHARACTER
 	if (mMapRoot->faceIntersectsBox(mVertex1, mVertex2, velocity, 3)) {
 		mMesh->translate(*velocity);
 		updatePosition();
