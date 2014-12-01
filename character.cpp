@@ -187,6 +187,7 @@ bool Character::applyGravity(QVector3D* velocity) {
 		if (mVerticalVelocity < 0) {
 			mVerticalVelocity = 0;
 		}
+
 	} else {
 		mOnSurface = false;
 		mMesh->translate(*velocity);

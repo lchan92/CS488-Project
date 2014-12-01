@@ -4,7 +4,7 @@
 
 rootnode = gr.node('maproot')
 
-box = gr.block('box', 0, 5, 0, 0)
+box = gr.block('box', 0, 0, 0, -5)
 rootnode:add_child(box)
 box:translate(-5, -15, 0)
 box:scale(10,10,10)

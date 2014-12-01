@@ -43,7 +43,7 @@ private:
 	QVector4D mVertex1, mVertex2;
 	std::vector<int> mTextureIDs;
 
-	double oldVelocityY;
+	double oldVelocityX, oldVelocityY, oldVelocityZ;
 };
 
 class Sphere : public Primitive {
