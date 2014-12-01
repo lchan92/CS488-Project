@@ -523,6 +523,11 @@ void Viewer::updatePositions() {
         Viewer::mSounds->stopFootsteps();
     }
 
+    // WIN GAME
+    if (mTrophy->isInRange(QVector4D(mPlayer->getPosition(), 1))) {
+        mTrophy->descend();
+    }
+
     update();
 }
 

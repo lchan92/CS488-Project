@@ -13,7 +13,7 @@ void Trophy::setMapRoot(SceneNode* mapRoot) {
 
 void Trophy::bind() {
 	mMesh = new Mesh();
-	mMesh->load("obj/chicken/hardcore_chicken.obj");
+	mMesh->load("obj/chicken/hardcore_chicken.obj", "textures/chicken.jpg");
 
 	mMesh->bind();
 	setPosition();
@@ -27,17 +27,28 @@ void Trophy::draw() {
 
 
 void Trophy::setPosition() {	
-	mMesh->translate(QVector3D(25,60,-142));
-	mPosition = mMesh->mInitPosition;
-	mPosition = mMesh->getTransform() * mMesh->getRotationTransform() * mPosition;
-
-	// BOUNDING BOX
-	mVertex1 = mMesh->getTransform() * mMesh->mVertex1;
-	mVertex2 = mMesh->getTransform() * mMesh->mVertex2;
+	mMesh->translate(QVector3D(25,65,-142));
+	updatePosition();
 }
 
 QVector4D Trophy::getPosition() {
 	return mPosition;
+}
+
+void Trophy::updatePosition() {
+	mPosition = mMesh->mInitPosition;
+	mPosition = mMesh->getTransform() * mMesh->getRotationTransform() * mPosition;
+}
+
+void Trophy::updateBoundingBox() {
+	mVertex1 = mMesh->getTransform() * mMesh->mVertex1;
+	mVertex2 = mMesh->getTransform() * mMesh->mVertex2;
+}
+
+
+
+bool Trophy::isOverBox(int* face, double* height, float* reflectFactor) {
+	return mMapRoot->isOverBox(mVertex1, mVertex2, face, height, reflectFactor);
 }
 
 bool Trophy::isInRange(QVector4D position) {
@@ -50,7 +61,10 @@ bool Trophy::isInRange(QVector4D position) {
 	return false;
 }
 
-bool Trophy::isOverBox(int* face, double* height, float* reflectFactor) {
-	return mMapRoot->isOverBox(mVertex1, mVertex2, face, height, reflectFactor);
+void Trophy::descend() {
+	if (mPosition.y() > 60) {
+		mMesh->translate(QVector3D(0,-0.1,0));
+		mMesh->rotate('y', 10);
+		updatePosition();
+	}
 }
-

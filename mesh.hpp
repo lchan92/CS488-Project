@@ -38,8 +38,8 @@ public:
 	Mesh();
 	virtual ~Mesh();
 
-	void load(const char* filePath);
-	void init(const aiScene* scene);
+	void load(const char* filePath, const char* defaultTexture);
+	void init(const aiScene* scene, const char* defaultTexture);
 
 	void bind();
 
@@ -48,6 +48,7 @@ public:
 	QMatrix4x4 getRotationTransform();
 
 	void translate(QVector3D amount);
+	void rotate(char axis, double angle);
 
 
     std::vector<SubMesh*> subMeshes;

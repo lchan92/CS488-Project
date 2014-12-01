@@ -20,9 +20,13 @@ public:
 	void setPosition();
 	QVector4D getPosition();
 
-	bool isInRange(QVector4D position);
+	void updatePosition();
+	void updateBoundingBox();
+
 	bool isOverBox(int* face, double* height, float* reflectFactor);
 
+	bool isInRange(QVector4D position);
+	void descend();
 
 	Mesh* mMesh;
 private:

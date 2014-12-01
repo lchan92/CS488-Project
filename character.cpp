@@ -27,7 +27,7 @@ void Character::setMapRoot(SceneNode* mapRoot) {
 
 void Character::bind() {
     mMesh = new Mesh();
-    mMesh->load("obj/coyote/Coyotito.obj");
+    mMesh->load("obj/coyote/Coyotito.obj", "textures/coyote.jpg");
 	
 	mMesh->bind();
 

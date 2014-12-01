@@ -60,7 +60,7 @@ Mesh::Mesh() {
 
 Mesh::~Mesh() {}
 
-void Mesh::load(const char* filePath) {
+void Mesh::load(const char* filePath, const char* defaultTexture) {
 	Assimp::Importer importer;
 
 	const aiScene* scene = importer.ReadFile(filePath, aiProcess_Triangulate | 
@@ -70,11 +70,11 @@ void Mesh::load(const char* filePath) {
 	if (!scene) {
 		std::cout << "Error reading from file: " << importer.GetErrorString() << std::endl;
 	} else {
-		init(scene);
+		init(scene, defaultTexture);
 	}
 }
 
-void Mesh::init(const aiScene* scene) {
+void Mesh::init(const aiScene* scene, const char* defaultTexture) {
 	// load materials
 	for (int i = 0; i < scene->mNumMaterials; i++) {
 		const aiMaterial* material = scene->mMaterials[i];
@@ -89,7 +89,7 @@ void Mesh::init(const aiScene* scene) {
 			}
 		} else {
 			//load a default texture
-			mTextures->loadImage("textures/default.jpg", "JPG");
+			mTextures->loadImage(defaultTexture, "JPG");
 		}
 	}
 
@@ -230,4 +230,21 @@ QMatrix4x4 Mesh::getRotationTransform() {
 
 void Mesh::translate(QVector3D amount) {
 	mTransform.translate(amount.x(), amount.y(), amount.z());
+}
+
+void Mesh::rotate(char axis, double angle) {
+  switch(axis) {
+    case 'x': {
+      mTransform.rotate(angle,1,0,0);
+      break;
+    }
+    case 'y': {
+      mTransform.rotate(angle,0,1,0);
+      break;
+    }
+    case 'z': {
+      mTransform.rotate(angle,0,0,1);
+      break;
+    }
+  }
 }
