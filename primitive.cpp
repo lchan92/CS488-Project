@@ -435,7 +435,13 @@ bool Block::intersectsRight(QVector4D p1, QVector4D p2, QVector3D* velocity, QVe
 		double newBoxX = mVertex2.x() + boxVelocity.x();
 
 		if (newCharacterX - newBoxX < EPSILON) {
-			velocity->setX(newBoxX - p1.x());
+			if (betweenTopBottom(p1.y(), mVertex2.y(), mVertex1.y()) &&
+				!betweenTopBottom(p2.y(), mVertex2.y(), mVertex1.y())) {
+				double distance = mVertex2.y() - p1.y();
+				velocity->setY(distance);
+			} else {
+				velocity->setX(newBoxX - p1.x());
+			}	
 			return true;
 		}
 	}
@@ -472,7 +478,7 @@ bool Block::intersectsLeft(QVector4D p1, QVector4D p2, QVector3D* velocity, QVec
 	} else if (velocity->x() > 0) {
 		double newCharacterX = p2.x() + velocity->x();
 
-		if (boxVelocity.x() == 0) {
+		if (boxVelocity.x() > 0) {
 			if (newCharacterX - mVertex1.x() > -EPSILON) {
 				velocity->setX(mVertex1.x() - p2.x());
 				return true;
@@ -482,7 +488,14 @@ bool Block::intersectsLeft(QVector4D p1, QVector4D p2, QVector3D* velocity, QVec
 		double newBoxX = mVertex1.x() + boxVelocity.x();
 
 		if (newCharacterX - newBoxX > -EPSILON) {
-			velocity->setX(newBoxX - p2.x());
+			if (betweenTopBottom(p1.y(), mVertex2.y(), mVertex1.y()) &&
+				!betweenTopBottom(p2.y(), mVertex2.y(), mVertex1.y())) {
+				double distance = mVertex2.y() - p1.y();
+				velocity->setY(distance);
+			} else {
+				velocity->setX(newBoxX - p2.x());
+			}
+
 			return true;
 		}
 	}
@@ -535,10 +548,10 @@ bool Block::intersectsTop(QVector4D p1, QVector4D p2, QVector3D* velocity, QVect
 			return true;
 		}
 	} else {
+		double newCharacterY = p1.y() + velocity->y();
+		double newBoxY = mVertex2.y() + boxVelocity.y();
+		
 		if (boxVelocity.y() > 0) {
-			double newCharacterY = p1.y() + velocity->y();
-			double newBoxY = mVertex2.y() + boxVelocity.y();
-
 			if (newCharacterY - newBoxY < EPSILON) {
 				velocity->setY(newBoxY - p1.y());
 				return true;				

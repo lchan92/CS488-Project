@@ -20,6 +20,7 @@ public:
 
 public slots:
     void displayVictoryPopup();
+    void closeWindow();
 
 private:
     void createApplicationActions();

@@ -47,6 +47,8 @@ public:
 	void checkBackCollisions(QVector3D* velocity);
 	void checkLeftCollisions(QVector3D* velocity);
 	void checkRightCollisions(QVector3D* velocity);
+
+	void toggleGodMode(bool godMode);
 private:
 	// constants
 	int MAX_JUMPS;
@@ -54,7 +56,7 @@ private:
 	float DEATH_HEIGHT;
 
 	int mJumpCount;
-	bool mAlive;
+	bool mAlive, mGodMode;
 
 	//PHYSICS
 	float mVerticalVelocity;

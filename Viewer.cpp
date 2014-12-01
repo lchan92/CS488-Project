@@ -37,6 +37,7 @@ Viewer::Viewer(const QGLFormat& format, QWidget *parent)
     mRightFlag = false;
     mDrawStencil = false;
     mDrawReflection = false;
+    mClose = false;
 
     mCameraHeight = 10.0f;
 
@@ -236,6 +237,7 @@ void Viewer::reset() {
     mBackwardFlag = false;
     mLeftFlag = false;
     mRightFlag = false;
+    mClose = false;
 
     mPlayer->resetPosition();
     mLights->resetPositions();
@@ -243,6 +245,18 @@ void Viewer::reset() {
     mCameraTransformation.setToIdentity();
     mCameraRotation.setToIdentity();
     mTrophy->resetPosition();
+}
+
+void Viewer::toggleGodMode() {
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, "", "God Mode ON?", 
+                                        QMessageBox::Yes|QMessageBox::No);
+
+    if (reply == QMessageBox::Yes) {
+        mPlayer->toggleGodMode(true);
+    } else {
+        mPlayer->toggleGodMode(false);
+    }
 }
 
 
@@ -374,7 +388,6 @@ void Viewer::mouseMoveEvent(QMouseEvent *event) {
 }
 
 void Viewer::keyPressEvent(QKeyEvent *event) {
-    // std::cout << "key: " << event->key() << " val: " << qPrintable(event->text()) << std::endl;
     switch(event->key()) {
         case 87: {
             //w
@@ -400,6 +413,10 @@ void Viewer::keyPressEvent(QKeyEvent *event) {
             //space
             mPlayer->jump();
             break;
+        }
+        case 71: {
+            //god mode toggle
+            toggleGodMode();
         }
         default:
             break;
@@ -451,7 +468,18 @@ void Viewer::updatePositions() {
 
     QVector3D velocity;
 
+    // GRAVITY
+    bool onSurface = mPlayer->applyGravity(&velocity);
+
+    if (mPlayer->isAlive())
+        mCameraTransformation.translate(velocity);
+    mLights->mPositions[0] += QVector4D(velocity.x(),velocity.y(),velocity.z(),0);
+
+
+
+
     // CHECK IF EACH BOXES SIDES MOVE INTO CHARACTER WHILE NOT PRESSING BUTTONS
+    velocity = QVector3D(0,0,0);
     mPlayer->checkFrontCollisions(&velocity);
     if (mPlayer->isAlive())
         mCameraTransformation.translate(velocity);
@@ -477,13 +505,8 @@ void Viewer::updatePositions() {
 
 
 
-    // GRAVITY
-    velocity = QVector3D(0,0,0);
-    bool onSurface = mPlayer->applyGravity(&velocity);
-    
-    if (mPlayer->isAlive())
-        mCameraTransformation.translate(velocity);
-    mLights->mPositions[0] += QVector4D(velocity.x(),velocity.y(),velocity.z(),0);
+
+
 
 
     // MOVEMENT
@@ -516,7 +539,7 @@ void Viewer::updatePositions() {
     if (mLeftFlag) {
         velocity = QVector3D(-0.2,0,0);
         mPlayer->strafeLeft(&velocity);
-
+    
         if (mPlayer->isAlive())
             mCameraTransformation.translate(velocity);
         
@@ -555,6 +578,19 @@ void Viewer::updatePositions() {
             mBackwardFlag = false;
             mLeftFlag = false;
             mRightFlag = false;
+        }
+    }
+
+    // DEATH
+    if (!mPlayer->isAlive()) {
+        QMessageBox::StandardButton reply;
+        reply = QMessageBox::question(this, "D E A D", "Quit?", 
+                                            QMessageBox::Yes|QMessageBox::No);
+
+        if (reply == QMessageBox::Yes) {
+            mClose = true;;
+        } else {
+            reset();
         }
     }
 
@@ -743,9 +779,6 @@ void Viewer::draw_mesh(Mesh* mesh) {
         switch(mReflectionType) {
             case 0: {
                 // back
-                if (mCameraPosition.z() > mPlayer->getVertex1().z())
-                    return;
-
                 double shift = mesh->mVertex1.z() - mesh->mVertex2.z();
                 transformMatrix.scale(1, 1, -1);
                 transformMatrix.translate(0, 0, shift + distance*2);
@@ -753,18 +786,12 @@ void Viewer::draw_mesh(Mesh* mesh) {
             }
             case 1: {
                 // bottom
-                if (mCameraPosition.y() > mPlayer->getVertex2().y())
-                    return;
-
                 transformMatrix.translate(0, distance*2, 0);
                 transformMatrix.scale(1, -1, 1);
                 break;
             }
             case 2: {
                 // left
-                if (mCameraPosition.x() > mPlayer->getVertex2().x())
-                    return;
-
                 double shift = mesh->mVertex2.x() - mesh->mVertex1.x();
                 transformMatrix.scale(-1, 1, 1);
                 transformMatrix.translate(shift + distance*2, 0, 0);
@@ -772,9 +799,6 @@ void Viewer::draw_mesh(Mesh* mesh) {
             }
             case 3: {
                 // right
-                if (mCameraPosition.x() < mPlayer->getVertex1().x())
-                    return;
-
                 double shift = mesh->mVertex2.x() - mesh->mVertex1.x();
                 transformMatrix.scale(-1, 1, 1);
                 transformMatrix.translate(-shift - distance*2, 0, 0);
@@ -782,9 +806,6 @@ void Viewer::draw_mesh(Mesh* mesh) {
             }
             case 4: {   
                 // top  
-                if (mCameraPosition.y() < mPlayer->getVertex1().y())
-                    return;
-
                 QVector4D vertex = mesh->mVertex1;   
                 transformMatrix.translate(0, vertex.y()*2 - distance*2,0);
                 transformMatrix.scale(1, -1, 1);
@@ -792,9 +813,6 @@ void Viewer::draw_mesh(Mesh* mesh) {
             }
             case 5: {
                 // front
-                if (mCameraPosition.z() < mPlayer->getVertex2().z())
-                    return;
-
                 double shift = mesh->mVertex1.z() - mesh->mVertex2.z();
                 transformMatrix.scale(1, 1, -1);
                 transformMatrix.translate(0, 0, - shift - distance*2);

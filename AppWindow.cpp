@@ -28,11 +28,15 @@ AppWindow::AppWindow(SceneNode* mapRoot) {
     QTimer *timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(displayVictoryPopup()));
     timer->start(20);
+
+    QTimer *timer2 = new QTimer(this);
+    connect(timer, SIGNAL(timeout()), this, SLOT(closeWindow()));
+    timer->start(20);
 }
 
 void AppWindow::createApplicationActions() {
-    // Creates a new action for quiting and pushes it onto the menu actions vector 
-    QAction* quitAct             = new QAction(tr("&Quit"), this);
+    // Creates a new action for quiting and pushes it onto the menu actions vector
+    QAction* quitAct    = new QAction(tr("&Quit"), this);
 
     m_menu_actions.push_back(quitAct);
 
@@ -68,5 +72,12 @@ void AppWindow::displayVictoryPopup() {
         } else {
             m_viewer->reset();
         }
+    }
+}
+
+
+void AppWindow::closeWindow() {
+    if (m_viewer->mClose) {
+        close();
     }
 }

@@ -52,6 +52,7 @@ public:
     static Trophy* mTrophy;
     static ObstacleMap* mMap;
 
+    bool mClose;
 public slots:
     void updatePositions();
 
@@ -73,6 +74,8 @@ protected:
     virtual void keyReleaseEvent(QKeyEvent *event);
 
 private:
+    void toggleGodMode();
+
     void drawSkyBox();
     void drawReflection();
 

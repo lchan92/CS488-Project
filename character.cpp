@@ -15,6 +15,7 @@ Character::Character() {
 
 	mVerticalVelocity = 0.0f;
 	mOnSurface = false;
+	mGodMode = false;
 }
 
 Character::~Character() {}
@@ -154,7 +155,7 @@ void Character::strafeRight(QVector3D* velocity) {
 }
 
 void Character::jump() {
-	if (mJumpCount < MAX_JUMPS) {
+	if (mGodMode || mJumpCount < MAX_JUMPS) {
 		if (mJumpCount == 0)
 			mVerticalVelocity = 0.8f;
 		else
@@ -242,4 +243,9 @@ void Character::checkLeftCollisions(QVector3D* velocity) {
 		mMesh->translate(*velocity);
 		updatePosition();
 	}
+}
+
+
+void Character::toggleGodMode(bool godMode) {
+	mGodMode = godMode;
 }
