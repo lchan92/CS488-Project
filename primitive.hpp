@@ -39,7 +39,11 @@ private:
 	bool betweenTopBottom(double y, double top, double bottom);
 	bool betweenFrontBack(double z, double front, double back);
 
-	double mReflectFactor;
+	bool aboveAndUnderBox(QVector4D p1, QVector4D p2);
+	bool leftAndRightOfBox(QVector4D p1, QVector4D p2);
+	bool inFrontAndBehindBox(QVector4D p1, QVector4D p2);
+
+	double mReflectFactor, mTransparency;
 	QVector4D mVertex1, mVertex2;
 	std::vector<int> mTextureIDs;
 

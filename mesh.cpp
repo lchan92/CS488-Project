@@ -83,7 +83,7 @@ void Mesh::init(const aiScene* scene) {
 			aiString path;
 			if (material->GetTexture(aiTextureType_DIFFUSE, 0, &path, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS) {
 				std::string imagePath = path.data;
-				imagePath = "obj/robot/textures/" + imagePath.substr(2, imagePath.length()-2);
+				imagePath = path.data + imagePath.substr(2, imagePath.length()-2);
 
 				mTextures->loadImage(imagePath.c_str(), "JPG");
 			}

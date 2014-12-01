@@ -21,6 +21,7 @@
 #include "lights.hpp"
 #include "cubemap.hpp"
 #include "mesh.hpp"
+#include "trophy.hpp"
 
 
 class Viewer : public QGLWidget, protected QOpenGLFunctions {
@@ -35,7 +36,7 @@ public:
     QSize sizeHint() const;
 
     void draw_mesh(Mesh* mesh);
-    void draw_cube(QMatrix4x4 transformMatrix, std::vector<int> textureIDs, float reflectFactor);
+    void draw_cube(QMatrix4x4 transformMatrix, std::vector<int> textureIDs, float reflectFactor, float transparency);
     void draw_sphere(QMatrix4x4 transformMatrix);
 
     void setMapRoot(SceneNode* node);
@@ -45,6 +46,7 @@ public:
     static Textures* mTextures;
     static Lights* mLights;
     static Character* mPlayer;
+    static Trophy* mTrophy;
     static ObstacleMap* mMap;
 
 public slots:
@@ -88,6 +90,7 @@ private:
     int mJumpCount, mReflectionType;
 
     bool mDrawSkyBox, mDrawReflection, mDrawStencil;
+    bool mDrawCharacterReflection, mDrawTrophyReflection;
 
     // mouse
     float mCameraHeight;
@@ -107,7 +110,8 @@ private:
     int mShadingLocation;
     int mDiffuseLocation, mSpecularLocation, mShininessLocation;
     int mMvpMatrixLocation, mMvMatrixLocation, mNormalMatrixLocation, mMMatrixLocation;
-    int mDrawSkyBoxLocation, mWorldCameraPosLocation, mDrawReflectionLocation, mReflectFactorLocation;
+    int mDrawSkyBoxLocation, mWorldCameraPosLocation, mDrawReflectionLocation;
+    int mReflectFactorLocation, mTransparencyLocation;
     int mLightPositionLocation, mLightColourLocation, mLightFalloffLocation;
 
 

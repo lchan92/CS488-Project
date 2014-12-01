@@ -26,6 +26,7 @@ HEADERS += algebra.hpp \
            lights.hpp \
            cubemap.hpp \
            mesh.hpp \
+           trophy.hpp \
            scene_lua.hpp \
            lua488.hpp
 SOURCES += algebra.cpp \
@@ -42,4 +43,5 @@ SOURCES += algebra.cpp \
            lights.cpp \
            cubemap.cpp \
            mesh.cpp \
+           trophy.cpp \
            scene_lua.cpp

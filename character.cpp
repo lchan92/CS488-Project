@@ -196,3 +196,35 @@ bool Character::applyGravity(QVector3D* velocity) {
 
 	return mOnSurface;
 }
+
+void Character::checkFrontCollisions(QVector3D* velocity) {
+	// COLLIDE FRONT FACES WITH CHARACTER
+	if (mMapRoot->faceIntersectsBox(mVertex1, mVertex2, velocity, 0)) {
+		mMesh->translate(*velocity);
+		updatePosition();
+	}
+}
+
+void Character::checkBackCollisions(QVector3D* velocity) {
+	// COLLIDE BACK FACES WITH CHARACTER
+	if (mMapRoot->faceIntersectsBox(mVertex1, mVertex2, velocity, 1)) {
+		mMesh->translate(*velocity);
+		updatePosition();
+	}
+}
+
+void Character::checkLeftCollisions(QVector3D* velocity) {
+	// COLLIDE BACK FACES WITH CHARACTER
+	if (mMapRoot->faceIntersectsBox(mVertex1, mVertex2, velocity, 2)) {
+		mMesh->translate(*velocity);
+		updatePosition();
+	}
+}
+
+void Character::checkRightCollisions(QVector3D* velocity) {
+	// COLLIDE BACK FACES WITH CHARACTER
+	if (mMapRoot->faceIntersectsBox(mVertex1, mVertex2, velocity, 3)) {
+		mMesh->translate(*velocity);
+		updatePosition();
+	}
+}

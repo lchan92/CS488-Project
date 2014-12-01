@@ -22,6 +22,7 @@ uniform sampler2D tex2;
 uniform bool drawSkyBox;
 uniform bool drawReflection;
 uniform float reflectFactor;
+uniform float transparency;
 uniform vec4 materialColour;
 
 out vec4 fragColour;
@@ -84,6 +85,8 @@ void main() {
 
 		if (drawReflection) {
 			fragColour = vec4(fragColour.xyz, reflectFactor);
+		} else {
+			fragColour = vec4(fragColour.xyz, transparency);
 		}
 	}
 }

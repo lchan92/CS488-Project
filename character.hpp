@@ -5,6 +5,7 @@
 #include <QtOpenGL>
 #include "scene.hpp"
 #include "mesh.hpp"
+#include "trophy.hpp"
 
 class Character {
 public:
@@ -41,6 +42,10 @@ public:
 
 	bool applyGravity(QVector3D*  velocity);
 
+	void checkFrontCollisions(QVector3D* velocity);
+	void checkBackCollisions(QVector3D* velocity);
+	void checkLeftCollisions(QVector3D* velocity);
+	void checkRightCollisions(QVector3D* velocity);
 private:
 	// constants
 	int MAX_JUMPS;

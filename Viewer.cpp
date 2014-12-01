@@ -16,6 +16,7 @@ Textures* Viewer::mTextures = NULL;
 Lights* Viewer::mLights = NULL;
 CubeMap* Viewer::mCubeMap = NULL;
 Character* Viewer::mPlayer = NULL;
+Trophy* Viewer::mTrophy = NULL;
 ObstacleMap* Viewer::mMap = NULL;
 
 
@@ -42,6 +43,7 @@ Viewer::Viewer(const QGLFormat& format, QWidget *parent)
 
 
     mPlayer = new Character();
+    mTrophy = new Trophy();
     mMap = new ObstacleMap();
     mSounds = new Sounds();
     mCubeMap = new CubeMap();
@@ -184,8 +186,9 @@ void Viewer::initializeGL() {
     mCubeMap->load();
     mTextures->load();
 
-    // load and bind character mesh
+    // load and bind meshes
     mPlayer->bind();
+    mTrophy->bind();
 
 
 
@@ -212,6 +215,9 @@ void Viewer::initializeGL() {
     // REFLECTIONS
     mDrawReflectionLocation = mProgram.uniformLocation("drawReflection");
     mReflectFactorLocation = mProgram.uniformLocation("reflectFactor");
+
+    // TRANSPARENCY
+    mTransparencyLocation = mProgram.uniformLocation("transparency");
 }
 
 
@@ -230,7 +236,12 @@ void Viewer::paintGL() {
     mDrawSkyBox = false;
 
     mPlayer->draw();
+    mTrophy->draw();
+
+     glEnable(GL_BLEND);
+     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     mMap->draw();
+    glDisable(GL_BLEND);
 
     // REFLECTIONS
     drawReflection();
@@ -265,7 +276,15 @@ void Viewer::drawReflection() {
     glDisable(GL_DEPTH_TEST);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     mDrawReflection = true;
+
+    mDrawCharacterReflection = true;
     mPlayer->draw();
+    mDrawCharacterReflection = false;
+    
+    mDrawTrophyReflection = true;
+    mTrophy->draw();
+    mDrawTrophyReflection = false;
+
     mDrawReflection = false;
 
     glEnable(GL_DEPTH_TEST);
@@ -400,6 +419,7 @@ void Viewer::keyReleaseEvent(QKeyEvent *event) {
 void Viewer::setMapRoot(SceneNode* node) {
     mMap->setRoot(node);
     mPlayer->setMapRoot(node);
+    mTrophy->setMapRoot(node);
 }
 
 
@@ -410,14 +430,43 @@ void Viewer::updatePositions() {
 
     QVector3D velocity;
 
+
+    // CHECK IF EACH BOXES SIDES MOVE INTO CHARACTER WHILE NOT PRESSING BUTTONS
+    mPlayer->checkFrontCollisions(&velocity);
+    if (mPlayer->isAlive())
+        mCameraTransformation.translate(velocity);
+    mLights->mPositions[0] += QVector4D(velocity.x(),velocity.y(),velocity.z(),0);
+
+    velocity = QVector3D(0,0,0);
+    mPlayer->checkBackCollisions(&velocity);
+    if (mPlayer->isAlive())
+        mCameraTransformation.translate(velocity);
+    mLights->mPositions[0] += QVector4D(velocity.x(),velocity.y(),velocity.z(),0);
+
+    velocity = QVector3D(0,0,0);
+    mPlayer->checkLeftCollisions(&velocity);
+    if (mPlayer->isAlive())
+        mCameraTransformation.translate(velocity);
+    mLights->mPositions[0] += QVector4D(velocity.x(),velocity.y(),velocity.z(),0);
+
+    velocity = QVector3D(0,0,0);
+    mPlayer->checkRightCollisions(&velocity);
+    if (mPlayer->isAlive())
+        mCameraTransformation.translate(velocity);
+    mLights->mPositions[0] += QVector4D(velocity.x(),velocity.y(),velocity.z(),0);
+
+
+
+    // GRAVITY
+    velocity = QVector3D(0,0,0);
     bool onSurface = mPlayer->applyGravity(&velocity);
     
     if (mPlayer->isAlive())
         mCameraTransformation.translate(velocity);
-
-
     mLights->mPositions[0] += QVector4D(velocity.x(),velocity.y(),velocity.z(),0);
 
+
+    // MOVEMENT
     if (mForwardFlag) {
         velocity = QVector3D(0,0,-0.5);
         mPlayer->walkForward(&velocity);
@@ -648,8 +697,11 @@ void Viewer::draw_mesh(Mesh* mesh) {
         //            CAN'T DRAW MULTIPLE REFLECTIONS ON SEVERAL REFLECTING BOXES SIMULTANEOUSLY
 
         double distance;
-        if (!mPlayer->isOverBox(&mReflectionType, &distance, &reflectFactor)) {
+
+        if (mDrawCharacterReflection && !mPlayer->isOverBox(&mReflectionType, &distance, &reflectFactor)) {
             return; // don't render reflection if not over box
+        } else if (mDrawTrophyReflection && !mTrophy->isOverBox(&mReflectionType, &distance, &reflectFactor)) {
+            return;
         }
 
         switch(mReflectionType) {
@@ -738,6 +790,9 @@ void Viewer::draw_mesh(Mesh* mesh) {
     mProgram.setUniformValue(mDrawReflectionLocation, mDrawReflection);
     mProgram.setUniformValue(mReflectFactorLocation, reflectFactor);
 
+    // TRANSPARENCY
+    mProgram.setUniformValue(mTransparencyLocation, 1);
+
     Textures* textures = mesh->mTextures;
 
     for (int i = 0; i < mesh->subMeshes.size(); i++) {
@@ -770,7 +825,10 @@ void Viewer::draw_mesh(Mesh* mesh) {
     }
 }
 
-void Viewer::draw_cube(QMatrix4x4 transformMatrix, std::vector<int> textureIndices, float reflectFactor) {
+void Viewer::draw_cube(QMatrix4x4 transformMatrix, std::vector<int> textureIndices, float reflectFactor, float transparency) {
+    if (mDrawStencil && reflectFactor == 0)
+        return;
+
     mProgram.bind();
 
     mCubeBufferObject.bind();
@@ -803,6 +861,9 @@ void Viewer::draw_cube(QMatrix4x4 transformMatrix, std::vector<int> textureIndic
     mProgram.setUniformValue(mDrawReflectionLocation, mDrawReflection);
     mProgram.setUniformValue(mReflectFactorLocation, reflectFactor);
 
+    // TRANSPARENCY
+    mProgram.setUniformValue(mTransparencyLocation, transparency);
+
     // TEXTURE MAPPING
     for (int i = 0; i < textureIndices.size(); i++) {
         glActiveTexture(GL_TEXTURE1 + i);
@@ -812,41 +873,7 @@ void Viewer::draw_cube(QMatrix4x4 transformMatrix, std::vector<int> textureIndic
         glBindTexture(GL_TEXTURE_2D, mTextures->mIDs[index]);
     }
 
-    if (mDrawStencil) {
-        // for stencil buffer
-        switch(mReflectionType) {
-            case 0: {
-                glDrawArrays(GL_TRIANGLES, 0, 6);
-                break;
-            }
-            case 1: {
-                glDrawArrays(GL_TRIANGLES, 6, 6);
-                break;
-            }
-            case 2: {
-                glDrawArrays(GL_TRIANGLES, 12, 6);
-                break;
-            }
-            case 3: {
-                glDrawArrays(GL_TRIANGLES, 18, 6);
-                break;
-            }
-            case 4: {
-                glDrawArrays(GL_TRIANGLES, 24, 6);
-                break;
-            }
-            case 5: { 
-                glDrawArrays(GL_TRIANGLES, 30, 6);
-                break;
-            }
-            default: {
-                break;
-            }
-        }
-    } else {
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-    }
-
+    glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 
 void Viewer::draw_sphere(QMatrix4x4 transformMatrix) {

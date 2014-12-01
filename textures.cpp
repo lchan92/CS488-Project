@@ -14,8 +14,9 @@ void Textures::load() {
 	loadImage("textures/wood1.bmp", "BMP");			 	// 0
 	loadImage("textures/wood2.jpg", "JPG"); 			// 1
 	loadImage("textures/glass.jpg", "JPG");				// 2
+	loadImage("textures/toy.jpg", "JPG");				// 3
 
-	loadImage("textures/abstract1.jpg", "JPG"); 		// 3
+	loadImage("textures/abstract1.jpg", "JPG"); 		// 4
 
 }
 
