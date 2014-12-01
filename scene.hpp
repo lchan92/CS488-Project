@@ -13,7 +13,7 @@ public:
   SceneNode(const std::string& name);
   virtual ~SceneNode();
 
-  virtual void walk_gl(QMatrix4x4 transformMatrix = QMatrix4x4()) const;
+  virtual void walk_gl(QMatrix4x4 transformMatrix = QMatrix4x4());
   virtual void setBoundaries(QMatrix4x4 transformMatrix = QMatrix4x4()) const;
 
   virtual bool faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocity, int direction);
@@ -53,6 +53,8 @@ public:
   void viewerRotate(float angle, float x, float y, float z);
   void viewerTranslate(QVector3D vec);
 
+  void moveObject();
+
   // Transformations
   QMatrix4x4 m_translation, m_rotation; // TRANSLATION AND ROTATION MATRICES FOR THE PUPPET
   QMatrix4x4 m_trans; // INITIAL TRANSFORMATION MATRICES FOR POSITIONING THE PARTS OF THE PUPPET RELATIVE TO EACH OTHER
@@ -70,6 +72,8 @@ protected:
   ChildList m_children;
 
   SceneNode* m_parent;
+  
+  double mMaxTranslate[3], mCurrentTranslate[3], mDirection[3];
 };
 
 
@@ -81,7 +85,7 @@ public:
   JointNode(const std::string& name);
   virtual ~JointNode();
 
-  virtual void walk_gl(QMatrix4x4 transformMatrix = QMatrix4x4()) const;
+  virtual void walk_gl(QMatrix4x4 transformMatrix = QMatrix4x4());
   virtual void setBoundaries(QMatrix4x4 transformMatrix = QMatrix4x4()) const;
 
   virtual bool faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocity, int direction);
@@ -112,7 +116,7 @@ public:
                Primitive* primitive);
   virtual ~GeometryNode();
 
-  virtual void walk_gl(QMatrix4x4 transformMatrix = QMatrix4x4()) const;
+  virtual void walk_gl(QMatrix4x4 transformMatrix = QMatrix4x4());
   virtual void setBoundaries(QMatrix4x4 transformMatrix = QMatrix4x4()) const;
 
   virtual bool faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocity, int direction);

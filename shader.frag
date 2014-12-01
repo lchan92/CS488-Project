@@ -80,7 +80,7 @@ void main() {
 		vec4 texColour = mix(texColour1, texColour2, 0.7);
 
 		phongModel(normalize(normal), texColour);
-		//fragColour = mix(fragColour, cubeMapColour, 0.5);
+		//fragColour = mix(fragColour, cubeMapColour, reflectFactor);
 
 		if (drawReflection) {
 			fragColour = vec4(fragColour.xyz, reflectFactor);

@@ -8,13 +8,16 @@ SceneNode::SceneNode(const std::string& name)
 {
   m_id = freeColourID;
   freeColourID++;
+
+  for (int i = 0; i < 3; i++)
+    mCurrentTranslate[i] = 0;
 }
 
 SceneNode::~SceneNode()
 {
 }
 
-void SceneNode::walk_gl(QMatrix4x4 transformMatrix) const
+void SceneNode::walk_gl(QMatrix4x4 transformMatrix)
 {
     std::list<SceneNode*>::const_iterator it;
     for (it = m_children.begin(); it != m_children.end(); it++) {
@@ -96,6 +99,50 @@ void SceneNode::viewerTranslate(QVector3D vec) {
   m_translation.translate(vec.x(), vec.y(), vec.z());
 }
 
+void SceneNode::moveObject() {
+  double velocity[3];
+  velocity[0] = 0.03;
+  velocity[1] = 0.03;
+  velocity[2] = 0.03;
+
+  bool swapDirection[3];
+  for (int i = 0; i < 3; i++)
+    swapDirection[i] = false;
+
+  for (int i = 0; i < 3; i++) {
+    double translate = mCurrentTranslate[i] + mDirection[i] * velocity[i];
+
+    if (mMaxTranslate[i] > 0) {
+      if (translate >= mMaxTranslate[i]) {
+        velocity[i] = mMaxTranslate[i] - mCurrentTranslate[i];
+        swapDirection[i] = true;
+      } else if (translate <= 0) {
+        velocity[i] = mCurrentTranslate[i];
+        swapDirection[i] = true;
+      }
+    } else if (mMaxTranslate[i] < 0) {
+      if (translate <= mMaxTranslate[i]) {
+        velocity[i] = mMaxTranslate[i] - mCurrentTranslate[i];
+        swapDirection[i] = true;
+      } else if (translate >= 0) {
+        velocity[i] = -mCurrentTranslate[i];
+        swapDirection[i] = true;
+      }
+    }
+  }
+
+  m_translation.translate(mDirection[0] * velocity[0], 
+                          mDirection[1] * velocity[1],
+                          mDirection[2] * velocity[2]);
+
+  for (int i = 0; i < 3; i++) {
+    mCurrentTranslate[i] += mDirection[i] * velocity[i];
+    
+    if (swapDirection[i])
+      mDirection[i] *= -1;
+  }
+}
+
 
 
 
@@ -113,7 +160,7 @@ JointNode::~JointNode()
 {
 }
 
-void JointNode::walk_gl(QMatrix4x4 transformMatrix) const
+void JointNode::walk_gl(QMatrix4x4 transformMatrix)
 {
     std::list<SceneNode*>::const_iterator it;
     for (it = m_children.begin(); it != m_children.end(); it++) {
@@ -192,21 +239,37 @@ GeometryNode::GeometryNode(const std::string& name, Primitive* primitive)
   : SceneNode(name),
     m_primitive(primitive)
 {
+  mMaxTranslate[0] = primitive->mTranslateX;
+  mMaxTranslate[1] = primitive->mTranslateY;
+  mMaxTranslate[2] = primitive->mTranslateZ;
+
+  for (int i = 0; i < 3; i++) {
+    if (mMaxTranslate[i] > 0)
+      mDirection[i] = 1;
+    else if (mMaxTranslate[i] < 0)
+      mDirection[i] = -1;
+    else 
+      mDirection[i] = 0;
+  }
 }
 
 GeometryNode::~GeometryNode()
 {
 }
 
-void GeometryNode::walk_gl(QMatrix4x4 transformMatrix) const
+void GeometryNode::walk_gl(QMatrix4x4 transformMatrix)
 {
-  //m_material->apply_gl(transformMatrix * m_trans);
-  m_primitive->walk_gl(transformMatrix * m_trans);
+  m_primitive->walk_gl(transformMatrix * m_translation * m_trans);
+
+  if (mMaxTranslate[0] != 0 || mMaxTranslate[1] != 0 || mMaxTranslate[2] != 0) {
+    moveObject();
+    m_primitive->setBoundaries(transformMatrix * m_translation * m_trans);
+  }
 }
 
 void GeometryNode::setBoundaries(QMatrix4x4 transformMatrix) const
 {
-  m_primitive->setBoundaries(transformMatrix * m_trans);
+  m_primitive->setBoundaries(transformMatrix * m_translation *m_trans);
 }
 
 bool GeometryNode::faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocity, int direction) 

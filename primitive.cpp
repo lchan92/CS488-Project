@@ -6,6 +6,8 @@
 
 Primitive::~Primitive()
 {
+	mTranslateX = 0;
+	mTranslateY = 0;
 }
 
 void Primitive::setBoundaries(QMatrix4x4 transformMatrix) {}
@@ -20,7 +22,7 @@ bool Primitive::isOverBox(QVector4D p1, QVector4D p2, int* face, double* distanc
 
 
 
-Block::Block(int type) {
+Block::Block(int type, double translateX, double translateY, double translateZ) {
 	switch (type) {
 		case 0: { //wood
 			mReflectFactor = 0;
@@ -44,6 +46,10 @@ Block::Block(int type) {
 			break;
 		}
 	}
+
+	mTranslateX = translateX;
+	mTranslateY = translateY;
+	mTranslateZ = translateZ;
 }
 
 Block::~Block() {}

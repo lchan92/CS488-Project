@@ -14,18 +14,18 @@ public:
   	virtual bool isOverBox(QVector4D p1, QVector4D p2, int* face, double* distance, float* reflectFactor);
 
     static double EPSILON;
+	double mTranslateX, mTranslateY, mTranslateZ; // maximum translate from original position
 };
 
 class Block : public Primitive {
 public:
-	Block(int type);
+	Block(int type, double translateX, double translateY, double translateZ);
 	virtual ~Block();
 	virtual void walk_gl(QMatrix4x4 transformMatrix) const;
 	virtual void setBoundaries(QMatrix4x4 transformMatrix);
 
 	virtual bool faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocity, int direction);
   	virtual bool isOverBox(QVector4D p1, QVector4D p2, int* face, double* distance, float* reflectFactor);
-
 
 private:
 	bool intersectsFront(QVector4D p1, QVector4D p2, double* velocity);
