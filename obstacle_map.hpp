@@ -12,6 +12,7 @@ public:
 	void setRoot(SceneNode* root);
 
 	void draw();
+	void moveObjects();
 
 private:
 	// hierarchical tree to store the obstacle blocks

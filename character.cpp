@@ -7,13 +7,14 @@
 
 Character::Character() {
 	MAX_JUMPS = 2000;
-	GRAVITY = -0.02f;
+	GRAVITY = -0.03f;
 	DEATH_HEIGHT = -50;
 
 	mJumpCount = 0;
 	mAlive = true;
 
 	mVerticalVelocity = 0.0f;
+	mOnSurface = false;
 }
 
 Character::~Character() {}
@@ -108,43 +109,35 @@ void Character::rotateY(float amount) {
 	updatePosition();
 }
 
-void Character::walkForward(double* velocity) {
-	*velocity = -0.5;
-
+void Character::walkForward(QVector3D* velocity) {
 	if (mMapRoot->faceIntersectsBox(mVertex1, mVertex2, velocity, 0)) {
 	}
 
-	mMesh->translate(QVector3D(0,0,*velocity));
+	mMesh->translate(*velocity);
 	updatePosition();
 }
 
-void Character::walkBackward(double* velocity) {
-	*velocity = 0.5;
-
+void Character::walkBackward(QVector3D* velocity) {
 	if (mMapRoot->faceIntersectsBox(mVertex1, mVertex2, velocity, 1)) {
 	}
 
-	mMesh->translate(QVector3D(0,0,*velocity));
+	mMesh->translate(*velocity);
 	updatePosition();
 }
 
-void Character::strafeLeft(double* velocity) {
-	*velocity = -0.2;
-
+void Character::strafeLeft(QVector3D* velocity) {
 	if (mMapRoot->faceIntersectsBox(mVertex1, mVertex2, velocity, 2)) {
 	}
 
-	mMesh->translate(QVector3D(*velocity,0,0));
+	mMesh->translate(*velocity);
 	updatePosition();
 }
 
-void Character::strafeRight(double* velocity) {
-	*velocity = 0.2;
-
+void Character::strafeRight(QVector3D* velocity) {
 	if (mMapRoot->faceIntersectsBox(mVertex1, mVertex2, velocity, 3)) {
 	}
 
-	mMesh->translate(QVector3D(*velocity,0,0));
+	mMesh->translate(*velocity);
 	updatePosition();
 }
 
@@ -156,43 +149,49 @@ void Character::jump() {
 			mVerticalVelocity = 0.5f;
 
 		mJumpCount++;
+		mOnSurface = false;
 
 		Viewer::mSounds->playJump();
 	}
 }
 
-bool Character::applyGravity(double* velocity) {
-	bool onSurface = false;
-
+bool Character::applyGravity(QVector3D* velocity) {
 	mVerticalVelocity += GRAVITY;
 	
 	if (mVerticalVelocity < -3.0f) {
 		mVerticalVelocity = -3.0f;
 	}
 
-	*velocity = mVerticalVelocity;;
+	velocity->setY(mVerticalVelocity);
 
-	int direction = (mVerticalVelocity < 0)? 4: 5; //intersect with top if falling, bottom if rising
+	int direction;
+	if (mOnSurface) {
+		direction = 4;
+	} else {
+		direction = mVerticalVelocity < 0? 4: 5;
+	}
 
 	if (mMapRoot->faceIntersectsBox(mVertex1, mVertex2, velocity, direction))	{
 		// reset position of character to not get stuck in physics when landing
-		mVerticalVelocity = *velocity;
-		mMesh->translate(QVector3D(0,*velocity,0));
+		mVerticalVelocity = velocity->y();
+
+		mMesh->translate(*velocity);
 		updatePosition();
 
 		// reset jump count since we're on a surface
 		if (direction == 4) {
 			mJumpCount = 0;
-			onSurface = true;
+			mOnSurface = true;
 		}
 		
 		if (mVerticalVelocity < 0) {
 			mVerticalVelocity = 0;
 		}
 	} else {
-		mMesh->translate(QVector3D(0,*velocity,0));
+		mOnSurface = false;
+		mMesh->translate(*velocity);
 		updatePosition();
 	}
 
-	return onSurface;
+	return mOnSurface;
 }

@@ -12,13 +12,15 @@ Primitive::~Primitive()
 
 void Primitive::setBoundaries(QMatrix4x4 transformMatrix) {}
 
-bool Primitive::faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocity, int direction) {
+bool Primitive::faceIntersectsBox(QVector4D p1, QVector4D p2, QVector3D* velocity, QVector3D boxVelocity, int direction) {
 	return false;
 }
 
 bool Primitive::isOverBox(QVector4D p1, QVector4D p2, int* face, double* distance, float* reflectFactor) {
 	return false;
 }
+
+double Primitive::EPSILON = 0.0001;
 
 
 
@@ -70,26 +72,26 @@ void Block::setBoundaries(QMatrix4x4 transformMatrix) {
 
 
 
-bool Block::faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocity, int direction) {
+bool Block::faceIntersectsBox(QVector4D p1, QVector4D p2, QVector3D* velocity, QVector3D boxVelocity, int direction) {
 	switch (direction) {
 		case 0: {
-			return intersectsFront(p1, p2, velocity);
+			return intersectsFront(p1, p2, velocity, boxVelocity);
 			break;
 		}
 		case 1:
-			return intersectsBack(p1, p2, velocity);
+			return intersectsBack(p1, p2, velocity, boxVelocity);
 			break;
 		case 2:
-			return intersectsRight(p1, p2, velocity);
+			return intersectsRight(p1, p2, velocity, boxVelocity);
 			break;
 		case 3:
-			return intersectsLeft(p1, p2, velocity);
+			return intersectsLeft(p1, p2, velocity, boxVelocity);
 			break;
 		case 4:
-			return intersectsTop(p1, p2, velocity);
+			return intersectsTop(p1, p2, velocity, boxVelocity);
 			break;
 		case 5:
-			return intersectsBottom(p1, p2, velocity);
+			return intersectsBottom(p1, p2, velocity, boxVelocity);
 			break;  
 		default:
 			break;
@@ -241,99 +243,144 @@ bool Block::betweenFrontBack(double z, double front, double back) {
 	return true;
 }
 
-bool Block::intersectsFront(QVector4D p1, QVector4D p2, double* velocity) {
+bool Block::intersectsFront(QVector4D p1, QVector4D p2, QVector3D* velocity, QVector3D boxVelocity) {
 	double z = fmin(p1.z(), p2.z());
 
-	if (z >= mVertex1.z() && (z + (*velocity)) <= mVertex1.z() &&
+	if (z >= mVertex1.z() && (z + velocity->z()) <= mVertex1.z() &&
 		(betweenLeftRight(p1.x(), mVertex1.x(), mVertex2.x()) || 
 			betweenLeftRight(p2.x(), mVertex1.x(), mVertex2.x())) &&
 		(betweenTopBottom(p1.y(), mVertex2.y(), mVertex1.y()) ||
 			betweenTopBottom(p2.y(), mVertex2.y(), mVertex1.y()))) {
-		double ratio = (mVertex1.z() - z)/(*velocity);
-		*velocity = *velocity * ratio;
+		double ratio = (mVertex1.z() - z)/velocity->z();
+		velocity->setZ(velocity->z() * ratio);
 		return true;
 	}
 
 	return false;
 }
 
-bool Block::intersectsBack(QVector4D p1, QVector4D p2, double* velocity) {
+bool Block::intersectsBack(QVector4D p1, QVector4D p2, QVector3D* velocity, QVector3D boxVelocity) {
 	double z = fmax(p1.z(), p2.z());
 
-	if (z <= mVertex2.z() && (z + (*velocity)) >= mVertex2.z() &&
+	if (z <= mVertex2.z() && (z + velocity->z()) >= mVertex2.z() &&
 		(betweenLeftRight(p1.x(), mVertex1.x(), mVertex2.x()) || 
 			betweenLeftRight(p2.x(), mVertex1.x(), mVertex2.x())) &&
 		(betweenTopBottom(p1.y(), mVertex2.y(), mVertex1.y()) ||
 			betweenTopBottom(p2.y(), mVertex2.y(), mVertex1.y()))) {
-		double ratio = (mVertex2.z() - z)/(*velocity);
-		*velocity = *velocity * ratio;
+		double ratio = (mVertex2.z() - z)/velocity->z();
+		velocity->setZ(velocity->z() * ratio);
 		return true;
 	}
 
 	return false;
 }
 
-bool Block::intersectsRight(QVector4D p1, QVector4D p2, double* velocity) {
+bool Block::intersectsRight(QVector4D p1, QVector4D p2, QVector3D* velocity, QVector3D boxVelocity) {
 	double x = fmin(p1.x(), p2.x());
 
-	if (x >= mVertex2.x() && (x + (*velocity)) <= mVertex2.x() &&
+	if (x >= mVertex2.x() && (x + velocity->x()) <= mVertex2.x() &&
 		(betweenTopBottom(p1.y(), mVertex2.y(), mVertex1.y()) ||
 			betweenTopBottom(p2.y(), mVertex2.y(), mVertex1.y())) &&
 		(betweenFrontBack(p1.z(), mVertex1.z(), mVertex2.z()) ||
 			betweenFrontBack(p2.z(), mVertex1.z(), mVertex2.z()))) {
-		double ratio = (mVertex2.x() - x)/(*velocity);
-		*velocity = *velocity * ratio;
+		double ratio = (mVertex2.x() - x)/velocity->x();
+		velocity->setX(velocity->x() * ratio);
 		return true;
 	}
 
 	return false;
 }
 
-bool Block::intersectsLeft(QVector4D p1, QVector4D p2, double* velocity) {
+bool Block::intersectsLeft(QVector4D p1, QVector4D p2, QVector3D* velocity, QVector3D boxVelocity) {
 	double x = fmax(p1.x(), p2.x());
 
-	if (x <= mVertex1.x() && (x + (*velocity)) >= mVertex1.x() &&
+	if (x <= mVertex1.x() && (x + velocity->x()) >= mVertex1.x() &&
 		(betweenTopBottom(p1.y(), mVertex2.y(), mVertex1.y()) ||
 			betweenTopBottom(p2.y(), mVertex2.y(), mVertex1.y())) &&
 		(betweenFrontBack(p1.z(), mVertex1.z(), mVertex2.z()) ||
 			betweenFrontBack(p2.z(), mVertex1.z(), mVertex2.z()))) {
-		double ratio = (mVertex1.x() - x)/(*velocity);
-		*velocity = *velocity * ratio;
+		double ratio = (mVertex1.x() - x)/velocity->x();
+		velocity->setX(velocity->x() * ratio);
 		return true;
 	}
 
 	return false;
 }
 
-bool Block::intersectsTop(QVector4D p1, QVector4D p2, double* velocity) {
+bool Block::intersectsTop(QVector4D p1, QVector4D p2, QVector3D* velocity, QVector3D boxVelocity) {
 	// see for inspiration on using velocity:
 	// http://techny.tumblr.com/post/42125198333/3d-collision-detection-and-resolution-using-sweeping
 	double y = fmin(p1.y(), p2.y());
 
-	if (y >= mVertex2.y() && (y + (*velocity)) <= mVertex2.y() &&
+	// case where box changes direction and character goes inside
+	if (oldVelocityY < 0 && boxVelocity.y() > 0)  {
+		velocity->setY(mVertex2.y() - y + 0.05);
+		oldVelocityY = boxVelocity.y();
+
+		velocity->setX(boxVelocity.x());
+		velocity->setZ(boxVelocity.z());
+		return true;
+	}
+
+	if (y - mVertex2.y() > -EPSILON && 
+		(y + velocity->y()) - (mVertex2.y() + boxVelocity.y()) < EPSILON &&
 		(betweenLeftRight(p1.x(), mVertex1.x(), mVertex2.x()) || 
 			betweenLeftRight(p2.x(), mVertex1.x(), mVertex2.x())) &&
 		(betweenFrontBack(p1.z(), mVertex1.z(), mVertex2.z()) ||
 			betweenFrontBack(p2.z(), mVertex1.z(), mVertex2.z()))) {
 		// collision detected
-		double ratio = (mVertex2.y() - y)/(*velocity);
-		*velocity = *velocity * ratio;
+		oldVelocityY = boxVelocity.y();
+
+		if (boxVelocity.y() > 0) {
+			velocity->setY(boxVelocity.y());
+		} else if (boxVelocity.y() < 0) {
+			double ratio = (mVertex2.y() + boxVelocity.y() - y)/velocity->y();
+			velocity->setY(velocity->y() * ratio);
+		} else {
+			double ratio = (mVertex2.y() - y)/velocity->y();
+			if (ratio < 0.001) ratio = 0;
+
+			velocity->setY(velocity->y() * ratio);
+		}
+
+		velocity->setX(boxVelocity.x());
+		velocity->setZ(boxVelocity.z());
 		return true;
 	}
 
+	oldVelocityY = 0;
 	return false;
 }
 
-bool Block::intersectsBottom(QVector4D p1, QVector4D p2, double* velocity) {
+bool Block::intersectsBottom(QVector4D p1, QVector4D p2, QVector3D* velocity, QVector3D boxVelocity) {
 	double y = fmax(p1.y(), p2.y());
 
-	if (y <= mVertex1.y() && (y + (*velocity)) >= mVertex1.y() &&
+	if (oldVelocityY > 0 && boxVelocity.y() < 0) {
+		velocity->setY(y - mVertex1.y() - 0.05);
+		oldVelocityY = boxVelocity.y();
+		return true;
+	}
+
+	if (y - mVertex1.y() < EPSILON && 
+		(y + velocity->y()) - (mVertex1.y() + boxVelocity.y()) > -EPSILON &&
 		(betweenLeftRight(p1.x(), mVertex1.x(), mVertex2.x()) || 
 			betweenLeftRight(p2.x(), mVertex1.x(), mVertex2.x())) &&
 		(betweenFrontBack(p1.z(), mVertex1.z(), mVertex2.z()) ||
 			betweenFrontBack(p2.z(), mVertex1.z(), mVertex2.z()))) {
-		double ratio = (mVertex1.y() - y)/(*velocity);
-		*velocity = *velocity * ratio;
+		oldVelocityY = boxVelocity.y();
+
+		if (boxVelocity.y() > 0) {
+			double ratio = (mVertex1.y() + boxVelocity.y() - y)/velocity->y();
+			velocity->setY(velocity->y() * ratio);
+		} else if (boxVelocity.y() < 0) {
+			velocity->setY(boxVelocity.y());
+		} else {
+			double ratio = (mVertex1.y() - y)/velocity->y();
+			if (ratio < 0.001) ratio = 0;
+
+			velocity->setY(velocity->y() * ratio);
+		}
+
 		return true;
 	}
 
@@ -357,7 +404,7 @@ void Sphere::walk_gl(QMatrix4x4 transformMatrix) const {
 void Sphere::setBoundaries(QMatrix4x4 transformMatrix) {
 }
 
-bool Sphere::faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocity, int direction) {
+bool Sphere::faceIntersectsBox(QVector4D p1, QVector4D p2, QVector3D* velocity, QVector3D boxVelocity, int direction) {
 	return false;
 }
 

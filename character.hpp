@@ -33,13 +33,13 @@ public:
 
 	// movement functions
 	void rotateY(float amount);
-	void walkForward(double*  velocity);
-	void walkBackward(double*  velocity);
-	void strafeLeft(double*  velocity);
-	void strafeRight(double*  velocity);
+	void walkForward(QVector3D*  velocity);
+	void walkBackward(QVector3D*  velocity);
+	void strafeLeft(QVector3D*  velocity);
+	void strafeRight(QVector3D*  velocity);
 	void jump();
 
-	bool applyGravity(double*  velocity);
+	bool applyGravity(QVector3D*  velocity);
 
 private:
 	// constants
@@ -52,6 +52,7 @@ private:
 
 	//PHYSICS
 	float mVerticalVelocity;
+	bool mOnSurface;
 
 	QVector4D mPosition;
 	//BOUNDING BOX

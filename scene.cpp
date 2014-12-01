@@ -32,8 +32,16 @@ void SceneNode::setBoundaries(QMatrix4x4 transformMatrix) const
         (*it)->setBoundaries(transformMatrix * m_translation * m_rotation * m_trans);
     }
 }
+ 
+void SceneNode::moveObjects(QMatrix4x4 transformMatrix)
+{
+    std::list<SceneNode*>::const_iterator it;
+    for (it = m_children.begin(); it != m_children.end(); it++) {
+        (*it)->moveObjects(transformMatrix * m_translation * m_rotation * m_trans);
+    }
+}
 
-bool SceneNode::faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocity, int direction) 
+bool SceneNode::faceIntersectsBox(QVector4D p1, QVector4D p2, QVector3D* velocity, int direction) 
 {
     bool result = false;
 
@@ -100,43 +108,42 @@ void SceneNode::viewerTranslate(QVector3D vec) {
 }
 
 void SceneNode::moveObject() {
-  double velocity[3];
-  velocity[0] = 0.03;
-  velocity[1] = 0.03;
-  velocity[2] = 0.03;
+  mVelocity[0] = 0.03;
+  mVelocity[1] = 0.03;
+  mVelocity[2] = 0.03;
 
   bool swapDirection[3];
   for (int i = 0; i < 3; i++)
     swapDirection[i] = false;
 
   for (int i = 0; i < 3; i++) {
-    double translate = mCurrentTranslate[i] + mDirection[i] * velocity[i];
+    double translate = mCurrentTranslate[i] + mDirection[i] * mVelocity[i];
 
     if (mMaxTranslate[i] > 0) {
       if (translate >= mMaxTranslate[i]) {
-        velocity[i] = mMaxTranslate[i] - mCurrentTranslate[i];
+        mVelocity[i] = mMaxTranslate[i] - mCurrentTranslate[i];
         swapDirection[i] = true;
       } else if (translate <= 0) {
-        velocity[i] = mCurrentTranslate[i];
+        mVelocity[i] = mCurrentTranslate[i];
         swapDirection[i] = true;
       }
     } else if (mMaxTranslate[i] < 0) {
       if (translate <= mMaxTranslate[i]) {
-        velocity[i] = mMaxTranslate[i] - mCurrentTranslate[i];
+        mVelocity[i] = mMaxTranslate[i] - mCurrentTranslate[i];
         swapDirection[i] = true;
       } else if (translate >= 0) {
-        velocity[i] = -mCurrentTranslate[i];
+        mVelocity[i] = -mCurrentTranslate[i];
         swapDirection[i] = true;
       }
     }
   }
 
-  m_translation.translate(mDirection[0] * velocity[0], 
-                          mDirection[1] * velocity[1],
-                          mDirection[2] * velocity[2]);
+  m_translation.translate(mDirection[0] * mVelocity[0], 
+                          mDirection[1] * mVelocity[1],
+                          mDirection[2] * mVelocity[2]);
 
   for (int i = 0; i < 3; i++) {
-    mCurrentTranslate[i] += mDirection[i] * velocity[i];
+    mCurrentTranslate[i] += mDirection[i] * mVelocity[i];
     
     if (swapDirection[i])
       mDirection[i] *= -1;
@@ -176,7 +183,15 @@ void JointNode::setBoundaries(QMatrix4x4 transformMatrix) const
     }
 }
 
-bool JointNode::faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocity, int direction) 
+void JointNode::moveObjects(QMatrix4x4 transformMatrix)
+{
+    std::list<SceneNode*>::const_iterator it;
+    for (it = m_children.begin(); it != m_children.end(); it++) {
+        (*it)->moveObjects(transformMatrix * m_translation * m_rotation * m_trans);
+    }
+}
+
+bool JointNode::faceIntersectsBox(QVector4D p1, QVector4D p2, QVector3D* velocity, int direction) 
 {
     bool result = false;
 
@@ -260,11 +275,6 @@ GeometryNode::~GeometryNode()
 void GeometryNode::walk_gl(QMatrix4x4 transformMatrix)
 {
   m_primitive->walk_gl(transformMatrix * m_translation * m_trans);
-
-  if (mMaxTranslate[0] != 0 || mMaxTranslate[1] != 0 || mMaxTranslate[2] != 0) {
-    moveObject();
-    m_primitive->setBoundaries(transformMatrix * m_translation * m_trans);
-  }
 }
 
 void GeometryNode::setBoundaries(QMatrix4x4 transformMatrix) const
@@ -272,9 +282,21 @@ void GeometryNode::setBoundaries(QMatrix4x4 transformMatrix) const
   m_primitive->setBoundaries(transformMatrix * m_translation *m_trans);
 }
 
-bool GeometryNode::faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocity, int direction) 
+void GeometryNode::moveObjects(QMatrix4x4 transformMatrix) 
 {
-  return m_primitive->faceIntersectsBox(p1, p2, velocity, direction);
+  if (mMaxTranslate[0] != 0 || mMaxTranslate[1] != 0 || mMaxTranslate[2] != 0) {
+    moveObject();
+    m_primitive->setBoundaries(transformMatrix * m_translation * m_trans);
+  }
+}
+
+bool GeometryNode::faceIntersectsBox(QVector4D p1, QVector4D p2, QVector3D* velocity, int direction) 
+{
+  QVector3D boxVelocity = QVector3D(mDirection[0] * mVelocity[0], 
+                                    mDirection[1] * mVelocity[1],
+                                    mDirection[2] * mVelocity[2]);
+
+  return m_primitive->faceIntersectsBox(p1, p2, velocity, boxVelocity, direction);
 }
 
 bool GeometryNode::isOverBox(QVector4D p1, QVector4D p2, int* face, double* distance, float* reflectFactor)

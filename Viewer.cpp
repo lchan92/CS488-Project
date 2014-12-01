@@ -406,34 +406,38 @@ void Viewer::setMapRoot(SceneNode* node) {
 
 // MOTION/PHYSICS
 void Viewer::updatePositions() {
-    double velocity;
+    mMap->moveObjects();
+
+    QVector3D velocity;
 
     bool onSurface = mPlayer->applyGravity(&velocity);
     
     if (mPlayer->isAlive())
-        mCameraTransformation.translate(0,velocity,0);
+        mCameraTransformation.translate(velocity);
 
 
-    mLights->mPositions[0] += QVector4D(0,velocity,0,0);
+    mLights->mPositions[0] += QVector4D(velocity.x(),velocity.y(),velocity.z(),0);
 
     if (mForwardFlag) {
+        velocity = QVector3D(0,0,-0.5);
         mPlayer->walkForward(&velocity);
 
         if (mPlayer->isAlive()) 
-            mCameraTransformation.translate(0,0,velocity);
+            mCameraTransformation.translate(velocity);
 
-        mLights->mPositions[0] += QVector4D(0,0,velocity,0);
+        mLights->mPositions[0] += QVector4D(velocity.x(),velocity.y(),velocity.z(),0);
         
         if (onSurface) {
             Viewer::mSounds->playFootsteps();
         }
     } else if (mBackwardFlag) {
+        velocity = QVector3D(0,0,0.5);
         mPlayer->walkBackward(&velocity);
 
         if (mPlayer->isAlive()) 
-            mCameraTransformation.translate(0,0,velocity);
+            mCameraTransformation.translate(velocity);
 
-        mLights->mPositions[0] += QVector4D(0,0,velocity,0);
+        mLights->mPositions[0] += QVector4D(velocity.x(),velocity.y(),velocity.z(),0);;
         
         if (onSurface) {
             Viewer::mSounds->playFootsteps();
@@ -441,23 +445,25 @@ void Viewer::updatePositions() {
     }
 
     if (mLeftFlag) {
+        velocity = QVector3D(-0.2,0,0);
         mPlayer->strafeLeft(&velocity);
 
         if (mPlayer->isAlive())
-            mCameraTransformation.translate(velocity,0,0);
+            mCameraTransformation.translate(velocity);
         
-        mLights->mPositions[0] += QVector4D(velocity,0,0,0);
+        mLights->mPositions[0] += QVector4D(velocity.x(),velocity.y(),velocity.z(),0);
 
         if (onSurface) {
             Viewer::mSounds->playFootsteps();
         }
     } else if (mRightFlag) {
+        velocity = QVector3D(0.2,0,0);
         mPlayer->strafeRight(&velocity);
         
         if (mPlayer->isAlive()) 
-            mCameraTransformation.translate(velocity,0,0);
+            mCameraTransformation.translate(velocity);
         
-        mLights->mPositions[0] += QVector4D(velocity,0,0,0);
+        mLights->mPositions[0] += QVector4D(velocity.x(),velocity.y(),velocity.z(),0);
 
         if (onSurface) {
             Viewer::mSounds->playFootsteps();

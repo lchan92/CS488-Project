@@ -10,7 +10,7 @@ public:
 	virtual void walk_gl(QMatrix4x4 transformMatrix) const = 0;
 	virtual void setBoundaries(QMatrix4x4 transformMatrix);
 
-	virtual bool faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocity, int direction);
+	virtual bool faceIntersectsBox(QVector4D p1, QVector4D p2, QVector3D* velocity, QVector3D boxVelocity, int direction);
   	virtual bool isOverBox(QVector4D p1, QVector4D p2, int* face, double* distance, float* reflectFactor);
 
     static double EPSILON;
@@ -24,16 +24,16 @@ public:
 	virtual void walk_gl(QMatrix4x4 transformMatrix) const;
 	virtual void setBoundaries(QMatrix4x4 transformMatrix);
 
-	virtual bool faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocity, int direction);
+	virtual bool faceIntersectsBox(QVector4D p1, QVector4D p2, QVector3D* velocity, QVector3D boxVelocity, int direction);
   	virtual bool isOverBox(QVector4D p1, QVector4D p2, int* face, double* distance, float* reflectFactor);
 
 private:
-	bool intersectsFront(QVector4D p1, QVector4D p2, double* velocity);
-	bool intersectsBack(QVector4D p1, QVector4D p2, double* velocity);
-	bool intersectsRight(QVector4D p1, QVector4D p2, double* velocity);
-	bool intersectsLeft(QVector4D p1, QVector4D p2, double* velocity);
-	bool intersectsTop(QVector4D p1, QVector4D p2, double* velocity);
-	bool intersectsBottom(QVector4D p1, QVector4D p2, double* velocity);
+	bool intersectsFront(QVector4D p1, QVector4D p2, QVector3D* velocity, QVector3D boxVelocity);
+	bool intersectsBack(QVector4D p1, QVector4D p2, QVector3D* velocity, QVector3D boxVelocity);
+	bool intersectsRight(QVector4D p1, QVector4D p2, QVector3D* velocity, QVector3D boxVelocity);
+	bool intersectsLeft(QVector4D p1, QVector4D p2, QVector3D* velocity, QVector3D boxVelocity);
+	bool intersectsTop(QVector4D p1, QVector4D p2, QVector3D* velocity, QVector3D boxVelocity);
+	bool intersectsBottom(QVector4D p1, QVector4D p2, QVector3D* velocity, QVector3D boxVelocity);
 
 	bool betweenLeftRight(double x, double left, double right);
 	bool betweenTopBottom(double y, double top, double bottom);
@@ -42,6 +42,8 @@ private:
 	double mReflectFactor;
 	QVector4D mVertex1, mVertex2;
 	std::vector<int> mTextureIDs;
+
+	double oldVelocityY;
 };
 
 class Sphere : public Primitive {
@@ -50,7 +52,7 @@ public:
 	virtual void walk_gl(QMatrix4x4 transformMatrix) const;
 	virtual void setBoundaries(QMatrix4x4 transformMatrix);
 
-	virtual bool faceIntersectsBox(QVector4D p1, QVector4D p2, double* velocity, int direction);
+	virtual bool faceIntersectsBox(QVector4D p1, QVector4D p2, QVector3D* velocity, QVector3D boxVelocity, int direction);
   	virtual bool isOverBox(QVector4D p1, QVector4D p2, int* face, double* distance, float* reflectFactor);
 };
 

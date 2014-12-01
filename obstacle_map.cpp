@@ -14,3 +14,7 @@ void ObstacleMap::setRoot(SceneNode* root) {
 void ObstacleMap::draw() {
 	mRoot->walk_gl();
 }
+
+void ObstacleMap::moveObjects() {
+	mRoot->moveObjects();
+}
